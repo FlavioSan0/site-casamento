@@ -1150,4 +1150,21 @@ textarea {
   .couple-highlight-image img {
     height: 240px;
   }
+  .admin-access {
+  margin-top: 26px;
+  display: flex;
+  justify-content: center;
+}
+
+.admin-link {
+  min-width: 200px;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .admin-link {
+    width: 100%;
+  }
+}
+
 }
