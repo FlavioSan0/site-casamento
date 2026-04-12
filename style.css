@@ -127,9 +127,9 @@ textarea {
 
 .hero-grid {
   display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  gap: 40px;
-  align-items: center;
+  grid-template-columns: 1.08fr 0.92fr;
+  gap: 28px;
+  align-items: start;
 }
 
 .event-date {
@@ -255,12 +255,12 @@ textarea {
 .hero-cards {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 18px;
+  gap: 16px;
 }
 
 .glass-card {
   background: rgba(255, 255, 255, 0.12);
-  padding: 24px;
+  padding: 22px;
   border-radius: 24px;
   backdrop-filter: blur(8px);
   box-shadow: 0 15px 30px var(--shadow-strong);
@@ -451,14 +451,17 @@ textarea {
 
 .gallery-grid {
   display: grid;
-  grid-template-columns: 1.3fr 1fr 1fr;
-  gap: 18px;
+  grid-template-columns: 1.25fr 1fr 1fr;
+  grid-template-rows: repeat(2, 220px);
+  gap: 16px;
+  align-items: stretch;
 }
 
 .gallery-item {
   overflow: hidden;
   border-radius: 24px;
-  min-height: 260px;
+  min-height: 0;
+  height: 100%;
   box-shadow: 0 10px 28px var(--shadow-blue);
 }
 
@@ -475,7 +478,6 @@ textarea {
 
 .gallery-large {
   grid-row: span 2;
-  min-height: 540px;
 }
 
 .dress-list {
@@ -771,24 +773,12 @@ textarea {
   max-width: 780px;
 }
 
-.footer-content p:last-child {
-  margin-top: 18px;
-  color: rgba(255, 255, 255, 0.82);
-}
-
 /* ===== RESPONSIVIDADE ===== */
 
 @media (max-width: 1100px) {
   .hero-grid {
     grid-template-columns: 1fr;
-  }
-
-  .hero-text {
-    order: 1;
-  }
-
-  .hero-cards {
-    order: 2;
+    gap: 22px;
   }
 
   .hero-text h2 {
@@ -798,6 +788,10 @@ textarea {
   .countdown-box,
   .hero-description {
     max-width: 100%;
+  }
+
+  .hero-cards {
+    max-width: 760px;
   }
 }
 
@@ -815,16 +809,16 @@ textarea {
   }
 
   .gallery-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1.1fr 1fr;
+    grid-template-rows: repeat(3, 190px);
   }
 
   .gallery-large {
-    grid-row: span 1;
-    min-height: 340px;
+    grid-row: span 2;
   }
 
   .hero-photo {
-    height: 420px;
+    height: 400px;
   }
 
   .couple-highlight-image img {
@@ -834,11 +828,11 @@ textarea {
 
 @media (max-width: 768px) {
   .hero-content {
-    padding: 24px 0 64px;
+    padding: 24px 0 56px;
   }
 
   .navbar {
-    margin-bottom: 36px;
+    margin-bottom: 30px;
     align-items: flex-start;
   }
 
@@ -881,23 +875,12 @@ textarea {
     font-size: 1rem;
   }
 
-  .countdown-grid,
-  .hero-cards,
-  .four-columns {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
   .section {
-    padding: 70px 0;
+    padding: 62px 0;
   }
 
   .section-header {
-    margin-bottom: 38px;
-  }
-
-  .hero-photo,
-  .couple-highlight-image img {
-    height: 320px;
+    margin-bottom: 34px;
   }
 
   .info-card,
@@ -912,47 +895,17 @@ textarea {
     flex-direction: column;
     align-items: flex-start;
   }
+
+  .hero-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .hero-photo {
+    height: 320px;
+  }
 }
 
 @media (max-width: 600px) {
-  .gallery-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .gallery-item,
-  .gallery-large {
-    min-height: 240px;
-  }
-
-  .countdown-item span {
-    font-size: 1.6rem;
-  }
-
-  .countdown-item small {
-    font-size: 0.65rem;
-    letter-spacing: 0.15em;
-  }
-
-  .info-card-header h4,
-  .gift-card h4 {
-    font-size: 1.25rem;
-  }
-
-  .pix-key-box {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .pix-copy-btn {
-    width: 100%;
-  }
-
-  .qr-placeholder {
-    max-width: 100%;
-  }
-}
-
-@media (max-width: 480px) {
   .container {
     width: min(1120px, 94%);
   }
@@ -973,8 +926,120 @@ textarea {
     font-size: 2rem;
   }
 
+  .hero-grid {
+    gap: 18px;
+  }
+
+  .hero-description {
+    margin-top: 18px;
+  }
+
+  .countdown-box {
+    margin-top: 22px;
+    padding: 18px;
+  }
+
+  .countdown-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .countdown-item {
+    padding: 16px 8px;
+  }
+
+  .countdown-item span {
+    font-size: 1.7rem;
+  }
+
+  .countdown-item small {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+  }
+
   .hero-buttons {
+    margin-top: 20px;
+    gap: 10px;
+  }
+
+  .btn {
+    padding: 13px 18px;
+  }
+
+  .hero-cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .glass-card {
+    padding: 18px;
+  }
+
+  .photo-card.full-width {
+    grid-column: 1 / -1;
+  }
+
+  .hero-photo {
+    height: 260px;
+  }
+
+  .card-title {
+    font-size: 1.1rem;
+  }
+
+  .gallery-grid {
+    grid-template-columns: 1.05fr 1fr;
+    grid-template-rows: repeat(3, 150px);
+    gap: 10px;
+  }
+
+  .gallery-item {
+    border-radius: 18px;
+  }
+
+  .gallery-large {
+    grid-row: span 2;
+  }
+
+  .info-card-header h4,
+  .gift-card h4 {
+    font-size: 1.25rem;
+  }
+
+  .pix-key-box {
     flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pix-copy-btn {
+    width: 100%;
+  }
+
+  .qr-placeholder {
+    max-width: 100%;
+  }
+
+  .couple-highlight-image img {
+    height: 280px;
+  }
+}
+
+@media (max-width: 420px) {
+  .hero-content {
+    padding: 20px 0 48px;
+  }
+
+  .brand h1 {
+    font-size: 1.32rem;
+  }
+
+  .hero-text h2 {
+    font-size: 1.8rem;
+  }
+
+  .hero-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
   }
 
   .btn {
@@ -982,49 +1047,26 @@ textarea {
     text-align: center;
   }
 
-  .countdown-grid,
-  .hero-cards,
-  .four-columns {
+  .hero-cards {
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-
-  .countdown-box {
-    padding: 18px;
-  }
-
-  .countdown-item {
-    padding: 16px 8px;
-  }
-
-  .hero-photo,
-  .couple-highlight-image img {
-    height: 280px;
   }
 
   .card-info-line {
     align-items: flex-start;
   }
-}
 
-@media (max-width: 380px) {
-  .countdown-grid,
-  .hero-cards,
+  .gallery-grid {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: repeat(3, 130px);
+  }
+
+  .gallery-large {
+    grid-row: span 2;
+  }
+
   .four-columns {
-    grid-template-columns: 1fr;
-  }
-
-  .hero-text h2 {
-    font-size: 1.8rem;
-  }
-
-  .brand h1 {
-    font-size: 1.3rem;
-  }
-
-  .hero-photo,
-  .couple-highlight-image img {
-    height: 240px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
 
   .section-header h3,
@@ -1033,5 +1075,36 @@ textarea {
   .couple-highlight-text h3,
   .pix-header h3 {
     font-size: 1.7rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .brand h1 {
+    font-size: 1.2rem;
+  }
+
+  .hero-text h2 {
+    font-size: 1.65rem;
+  }
+
+  .hero-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .gallery-grid {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: repeat(3, 118px);
+  }
+
+  .hero-photo {
+    height: 220px;
+  }
+
+  .couple-highlight-image img {
+    height: 240px;
   }
 }
