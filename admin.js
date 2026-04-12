@@ -13,6 +13,13 @@ const loginMessage = document.getElementById("loginMessage");
 const loginButton = document.getElementById("loginButton");
 const logoutButton = document.getElementById("logoutButton");
 
+const giftForm = document.getElementById("giftForm");
+const giftFormMessage = document.getElementById("giftFormMessage");
+const giftSubmitButton = document.getElementById("giftSubmitButton");
+const giftUsaCotas = document.getElementById("giftUsaCotas");
+const giftQuantidadeWrapper = document.getElementById("giftQuantidadeWrapper");
+const giftQuantidadeTotal = document.getElementById("giftQuantidadeTotal");
+
 const confirmacoesTableBody = document.getElementById("confirmacoesTableBody");
 const presentesTableBody = document.getElementById("presentesTableBody");
 const reservasTableBody = document.getElementById("reservasTableBody");
@@ -48,6 +55,24 @@ function showLogin() {
 function showDashboard() {
   loginSection.classList.add("hidden");
   dashboardSection.classList.remove("hidden");
+}
+
+function updateGiftQuantityVisibility() {
+  if (!giftUsaCotas || !giftQuantidadeWrapper || !giftQuantidadeTotal) return;
+
+  if (giftUsaCotas.checked) {
+    giftQuantidadeWrapper.style.display = "block";
+    giftQuantidadeTotal.value = giftQuantidadeTotal.value || "1";
+    giftQuantidadeTotal.min = "1";
+  } else {
+    giftQuantidadeWrapper.style.display = "none";
+    giftQuantidadeTotal.value = "1";
+  }
+}
+
+if (giftUsaCotas) {
+  giftUsaCotas.addEventListener("change", updateGiftQuantityVisibility);
+  updateGiftQuantityVisibility();
 }
 
 if (loginForm) {
@@ -98,6 +123,64 @@ if (logoutButton) {
   });
 }
 
+if (giftForm) {
+  giftForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const nome = document.getElementById("giftNome").value.trim();
+    const valor = document.getElementById("giftValor").value.trim();
+    const descricao = document.getElementById("giftDescricao").value.trim();
+    const usaCotas = !!giftUsaCotas.checked;
+    const quantidadeTotal = usaCotas ? Number(giftQuantidadeTotal.value) : 1;
+
+    if (!nome) {
+      giftFormMessage.textContent = "Informe o nome do presente.";
+      giftFormMessage.style.color = "#800000";
+      return;
+    }
+
+    if (usaCotas && (!quantidadeTotal || Number.isNaN(quantidadeTotal) || quantidadeTotal < 1)) {
+      giftFormMessage.textContent = "Informe uma quantidade total válida para as cotas.";
+      giftFormMessage.style.color = "#800000";
+      return;
+    }
+
+    giftSubmitButton.disabled = true;
+    giftSubmitButton.textContent = "Cadastrando...";
+    giftFormMessage.textContent = "";
+
+    try {
+      const { error } = await supabaseClient.from("presentes").insert([
+        {
+          nome,
+          valor: valor || null,
+          descricao: descricao || null,
+          usa_cotas: usaCotas,
+          quantidade_total: quantidadeTotal,
+          quantidade_reservada: 0,
+          status: "disponivel",
+        },
+      ]);
+
+      if (error) throw error;
+
+      giftFormMessage.textContent = "Presente cadastrado com sucesso.";
+      giftFormMessage.style.color = "#355b46";
+
+      giftForm.reset();
+      updateGiftQuantityVisibility();
+      await loadPresentes();
+    } catch (error) {
+      console.error("Erro ao cadastrar presente:", error);
+      giftFormMessage.textContent = "Não foi possível cadastrar o presente.";
+      giftFormMessage.style.color = "#800000";
+    } finally {
+      giftSubmitButton.disabled = false;
+      giftSubmitButton.textContent = "Cadastrar presente";
+    }
+  });
+}
+
 async function loadDashboardData() {
   await Promise.all([loadConfirmacoes(), loadPresentes(), loadReservas()]);
 }
@@ -138,7 +221,7 @@ async function loadPresentes() {
     console.error("Erro ao carregar presentes:", error);
     presentesTableBody.innerHTML = `
       <tr>
-        <td colspan="5">Não foi possível carregar os presentes.</td>
+        <td colspan="6">Não foi possível carregar os presentes.</td>
       </tr>
     `;
   }
@@ -207,7 +290,7 @@ function renderPresentes(presentes) {
   if (!presentes.length) {
     presentesTableBody.innerHTML = `
       <tr>
-        <td colspan="5">Nenhum presente encontrado.</td>
+        <td colspan="6">Nenhum presente encontrado.</td>
       </tr>
     `;
     return;
@@ -218,11 +301,13 @@ function renderPresentes(presentes) {
       const total = Number(item.quantidade_total || 0);
       const reservadas = Number(item.quantidade_reservada || 0);
       const disponiveis = Math.max(total - reservadas, 0);
+      const tipo = item.usa_cotas ? "Com cotas" : "Único";
 
       return `
         <tr>
           <td>${escapeHtml(item.nome || "")}</td>
           <td>${escapeHtml(item.valor || "-")}</td>
+          <td>${tipo}</td>
           <td>${total}</td>
           <td>${reservadas}</td>
           <td>${disponiveis}</td>

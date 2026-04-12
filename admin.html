@@ -71,8 +71,56 @@
 
         <div class="stat-card">
           <span id="totalPresentesReservados">0</span>
-          <small>Cotas reservadas</small>
+          <small>Reservas registradas</small>
         </div>
+      </section>
+
+      <section class="panel-block">
+        <div class="block-header">
+          <div>
+            <p class="tag">Cadastro</p>
+            <h2>Lançar presentes</h2>
+          </div>
+        </div>
+
+        <form id="giftForm" class="gift-form">
+          <div class="gift-form-grid">
+            <div class="form-group">
+              <label for="giftNome">Nome do presente</label>
+              <input type="text" id="giftNome" placeholder="Ex.: Jogo de Panelas" required />
+            </div>
+
+            <div class="form-group">
+              <label for="giftValor">Valor</label>
+              <input type="text" id="giftValor" placeholder="Ex.: R$ 350,00 ou Valor livre" />
+            </div>
+
+            <div class="form-group form-group-full">
+              <label for="giftDescricao">Descrição</label>
+              <input type="text" id="giftDescricao" placeholder="Descrição do presente" />
+            </div>
+
+            <div class="form-group checkbox-group form-group-full">
+              <label class="checkbox-label">
+                <input type="checkbox" id="giftUsaCotas" />
+                <span>Este presente usa cotas de disponibilidade</span>
+              </label>
+            </div>
+
+            <div class="form-group" id="giftQuantidadeWrapper">
+              <label for="giftQuantidadeTotal">Quantidade total de cotas</label>
+              <input type="number" id="giftQuantidadeTotal" min="1" value="1" />
+            </div>
+          </div>
+
+          <div class="gift-form-actions">
+            <button type="submit" class="btn btn-primary" id="giftSubmitButton">
+              Cadastrar presente
+            </button>
+          </div>
+
+          <p id="giftFormMessage" class="message"></p>
+        </form>
       </section>
 
       <section class="panel-block">
@@ -118,6 +166,7 @@
               <tr>
                 <th>Presente</th>
                 <th>Valor</th>
+                <th>Tipo</th>
                 <th>Total</th>
                 <th>Reservadas</th>
                 <th>Disponíveis</th>
@@ -125,7 +174,7 @@
             </thead>
             <tbody id="presentesTableBody">
               <tr>
-                <td colspan="5">Carregando presentes...</td>
+                <td colspan="6">Carregando presentes...</td>
               </tr>
             </tbody>
           </table>
