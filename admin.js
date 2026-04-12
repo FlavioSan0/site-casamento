@@ -21,6 +21,7 @@ const giftEditId = document.getElementById("giftEditId");
 const giftUsaCotas = document.getElementById("giftUsaCotas");
 const giftQuantidadeWrapper = document.getElementById("giftQuantidadeWrapper");
 const giftQuantidadeTotal = document.getElementById("giftQuantidadeTotal");
+const giftValorInput = document.getElementById("giftValor");
 
 const confirmacoesTableBody = document.getElementById("confirmacoesTableBody");
 const presentesManageTableBody = document.getElementById("presentesManageTableBody");
@@ -74,6 +75,32 @@ function updateGiftQuantityVisibility() {
   }
 }
 
+function formatGiftValue(value) {
+  if (!value) return "";
+
+  const trimmed = value.trim();
+
+  if (!trimmed) return "";
+
+  if (/^r\$/i.test(trimmed)) {
+    return trimmed.replace(/^r\$\s*/i, "R$ ");
+  }
+
+  if (/^\d+(,\d{1,2})?$/.test(trimmed) || /^\d+(\.\d{1,2})?$/.test(trimmed)) {
+    return `R$ ${trimmed.replace(".", ",")}`;
+  }
+
+  return trimmed;
+}
+
+function normalizeGiftValueForSave(value) {
+  if (!value) return null;
+
+  const formatted = formatGiftValue(value);
+
+  return formatted || null;
+}
+
 function resetGiftForm() {
   giftForm.reset();
   giftEditId.value = "";
@@ -94,6 +121,12 @@ function fillGiftFormForEdit(gift) {
   giftCancelEditButton.classList.remove("hidden");
   updateGiftQuantityVisibility();
   window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+if (giftValorInput) {
+  giftValorInput.addEventListener("blur", () => {
+    giftValorInput.value = formatGiftValue(giftValorInput.value);
+  });
 }
 
 if (giftUsaCotas) {
@@ -159,7 +192,7 @@ if (giftForm) {
 
     const editId = giftEditId.value ? Number(giftEditId.value) : null;
     const nome = document.getElementById("giftNome").value.trim();
-    const valor = document.getElementById("giftValor").value.trim();
+    const valor = normalizeGiftValueForSave(document.getElementById("giftValor").value);
     const descricao = document.getElementById("giftDescricao").value.trim();
     const usaCotas = !!giftUsaCotas.checked;
     const quantidadeTotal = usaCotas ? Number(giftQuantidadeTotal.value) : 1;
@@ -213,7 +246,7 @@ if (giftForm) {
           .from("presentes")
           .update({
             nome,
-            valor: valor || null,
+            valor,
             descricao: descricao || null,
             usa_cotas: usaCotas,
             quantidade_total: quantidadeTotal,
@@ -229,7 +262,7 @@ if (giftForm) {
         const { error } = await supabaseClient.from("presentes").insert([
           {
             nome,
-            valor: valor || null,
+            valor,
             descricao: descricao || null,
             usa_cotas: usaCotas,
             quantidade_total: quantidadeTotal,
@@ -248,7 +281,8 @@ if (giftForm) {
       await loadPresentes();
     } catch (error) {
       console.error("Erro ao salvar presente:", error);
-      giftFormMessage.textContent = "Não foi possível salvar o presente.";
+      giftFormMessage.textContent =
+        error?.message || "Não foi possível salvar o presente.";
       giftFormMessage.style.color = "#800000";
     } finally {
       giftSubmitButton.disabled = false;
