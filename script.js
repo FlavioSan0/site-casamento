@@ -4,15 +4,19 @@ const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_doB-Z-J7ingNc--jiPHSyQ__0HY95qI
 let supabaseClient = null;
 
 if (!window.supabase) {
-  console.error("Supabase JS não foi carregado no navegador.");
-} else if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-  console.error("URL ou chave pública do Supabase não foram definidas.");
+  console.error("Supabase JS não foi carregado. Verifique o script CDN no index.html.");
 } else {
-  supabaseClient = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_PUBLISHABLE_KEY
-  );
-  console.log("Cliente Supabase iniciado com sucesso.");
+  console.log("Supabase JS carregado com sucesso.");
+
+  try {
+    supabaseClient = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_PUBLISHABLE_KEY
+    );
+    console.log("Cliente Supabase criado com sucesso.");
+  } catch (error) {
+    console.error("Erro ao criar cliente Supabase:", error);
+  }
 }
 
 const weddingDate = new Date("2026-08-15T17:30:00");
@@ -59,6 +63,7 @@ if (rsvpForm) {
     event.preventDefault();
 
     if (!supabaseClient) {
+      console.error("Supabase client está nulo.");
       if (formMessage) {
         formMessage.textContent =
           "Não foi possível conectar ao banco de dados no momento.";
@@ -100,20 +105,27 @@ if (rsvpForm) {
       formMessage.textContent = "";
     }
 
+    const payload = {
+      nome,
+      telefone: telefone || null,
+      acompanhantes,
+      presenca,
+      observacoes: observacoes || null,
+    };
+
+    console.log("Enviando confirmação:", payload);
+
     try {
-      const { error } = await supabaseClient.from("confirmacoes").insert([
-        {
-          nome,
-          telefone: telefone || null,
-          acompanhantes,
-          presenca,
-          observacoes: observacoes || null,
-        },
-      ]);
+      const { data, error } = await supabaseClient
+        .from("confirmacoes")
+        .insert([payload]);
 
       if (error) {
+        console.error("Erro retornado pelo Supabase:", error);
         throw error;
       }
+
+      console.log("Confirmação enviada com sucesso:", data);
 
       if (formMessage) {
         formMessage.textContent = "Confirmação enviada com sucesso. Obrigado!";
