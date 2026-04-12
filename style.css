@@ -125,6 +125,15 @@ textarea {
   background: rgba(255, 255, 255, 0.1);
 }
 
+.admin-top-link {
+  background: rgba(255, 255, 255, 0.1);
+  font-weight: 700;
+}
+
+.admin-top-link:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
 .hero-grid {
   display: grid;
   grid-template-columns: 1.08fr 0.92fr;
@@ -614,8 +623,7 @@ textarea {
 
 .form-group input:focus,
 .form-group select:focus,
-.form-group textarea:focus,
-.gift-reserver input:focus {
+.form-group textarea:focus {
   border-color: var(--wine);
 }
 
@@ -696,6 +704,10 @@ textarea {
   font-size: 0.95rem;
   color: var(--navy);
   background: var(--white);
+}
+
+.gift-reserver input:focus {
+  border-color: var(--wine);
 }
 
 .gift-feedback {
@@ -905,7 +917,8 @@ textarea {
     display: flex;
   }
 
-  .nav-links a {
+  .nav-links a,
+  .admin-top-link {
     width: 100%;
   }
 
@@ -1048,8 +1061,7 @@ textarea {
     font-size: 1.25rem;
   }
 
-  .pix-key-box,
-  .gift-reserver {
+  .pix-key-box {
     flex-direction: column;
     align-items: stretch;
   }
@@ -1150,21 +1162,4 @@ textarea {
   .couple-highlight-image img {
     height: 240px;
   }
-  .admin-access {
-  margin-top: 26px;
-  display: flex;
-  justify-content: center;
-}
-
-.admin-link {
-  min-width: 200px;
-  text-align: center;
-}
-
-@media (max-width: 480px) {
-  .admin-link {
-    width: 100%;
-  }
-}
-
 }
