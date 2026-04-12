@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel do Casamento | Flávio & Ana Paula</title>
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+  <main class="admin-page">
+    <section class="login-section" id="loginSection">
+      <div class="login-card">
+        <p class="tag">Painel administrativo</p>
+        <h1>Entrar no painel</h1>
+        <p class="subtitle">
+          Acesse para visualizar confirmações de presença e reservas de presentes.
+        </p>
+
+        <form id="loginForm" class="login-form">
+          <div class="form-group">
+            <label for="adminEmail">E-mail</label>
+            <input type="email" id="adminEmail" placeholder="seuemail@exemplo.com" required />
+          </div>
+
+          <div class="form-group">
+            <label for="adminPassword">Senha</label>
+            <input type="password" id="adminPassword" placeholder="Sua senha" required />
+          </div>
+
+          <button type="submit" class="btn btn-primary full-button" id="loginButton">
+            Entrar
+          </button>
+
+          <p id="loginMessage" class="message"></p>
+        </form>
+      </div>
+    </section>
+
+    <section class="dashboard-section hidden" id="dashboardSection">
+      <header class="dashboard-header">
+        <div>
+          <p class="tag">Painel administrativo</p>
+          <h1>Flávio & Ana Paula</h1>
+        </div>
+
+        <button class="btn btn-outline-dark" id="logoutButton" type="button">
+          Sair
+        </button>
+      </header>
+
+      <section class="stats-grid">
+        <div class="stat-card">
+          <span id="totalConfirmacoes">0</span>
+          <small>Total de respostas</small>
+        </div>
+
+        <div class="stat-card">
+          <span id="totalPresentesSim">0</span>
+          <small>Confirmaram presença</small>
+        </div>
+
+        <div class="stat-card">
+          <span id="totalPresentesNao">0</span>
+          <small>Não comparecem</small>
+        </div>
+
+        <div class="stat-card">
+          <span id="totalAcompanhantes">0</span>
+          <small>Total acompanhantes</small>
+        </div>
+
+        <div class="stat-card">
+          <span id="totalPresentesReservados">0</span>
+          <small>Presentes reservados</small>
+        </div>
+      </section>
+
+      <section class="panel-block">
+        <div class="block-header">
+          <div>
+            <p class="tag">Confirmações</p>
+            <h2>Lista de presença</h2>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Telefone</th>
+                <th>Acompanhantes</th>
+                <th>Presença</th>
+                <th>Observações</th>
+                <th>Data</th>
+              </tr>
+            </thead>
+            <tbody id="confirmacoesTableBody">
+              <tr>
+                <td colspan="6">Carregando confirmações...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel-block">
+        <div class="block-header">
+          <div>
+            <p class="tag">Presentes</p>
+            <h2>Reservas de presentes</h2>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Presente</th>
+                <th>Valor</th>
+                <th>Status</th>
+                <th>Reservado por</th>
+              </tr>
+            </thead>
+            <tbody id="presentesTableBody">
+              <tr>
+                <td colspan="4">Carregando presentes...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
