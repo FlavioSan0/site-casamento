@@ -614,7 +614,8 @@ textarea {
 
 .form-group input:focus,
 .form-group select:focus,
-.form-group textarea:focus {
+.form-group textarea:focus,
+.gift-reserver input:focus {
   border-color: var(--wine);
 }
 
@@ -663,6 +664,49 @@ textarea {
 .gift-status.reserved {
   background: #eee2e4;
   color: #8f5c6b;
+}
+
+.gift-loading {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--text-soft);
+  font-weight: 600;
+}
+
+.gift-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--text-soft);
+}
+
+.gift-reserver {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.gift-reserver input {
+  flex: 1;
+  min-width: 180px;
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  padding: 12px 14px;
+  outline: none;
+  font-size: 0.95rem;
+  color: var(--navy);
+  background: var(--white);
+}
+
+.gift-feedback {
+  margin-top: 12px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #355b46;
+}
+
+.gift-feedback.error {
+  color: #800000;
 }
 
 .pix-card {
@@ -772,8 +816,6 @@ textarea {
   text-align: center;
   max-width: 780px;
 }
-
-/* ===== RESPONSIVIDADE ===== */
 
 @media (max-width: 1100px) {
   .hero-grid {
@@ -1006,7 +1048,8 @@ textarea {
     font-size: 1.25rem;
   }
 
-  .pix-key-box {
+  .pix-key-box,
+  .gift-reserver {
     flex-direction: column;
     align-items: stretch;
   }

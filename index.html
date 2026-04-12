@@ -354,7 +354,9 @@
             ></textarea>
           </div>
 
-          <button type="submit" class="btn btn-primary full-button">Enviar confirmação</button>
+          <button type="submit" class="btn btn-primary full-button" id="submitRsvpButton">
+            Enviar confirmação
+          </button>
           <p id="formMessage" class="form-message"></p>
         </form>
       </div>
@@ -371,90 +373,8 @@
           </p>
         </div>
 
-        <div class="gift-grid">
-          <div class="gift-card">
-            <div class="gift-top">
-              <div>
-                <h4>Jogo de Panelas</h4>
-                <p>R$ 350,00</p>
-              </div>
-              <span class="gift-status available">Disponível</span>
-            </div>
-            <p class="gift-description">
-              Um presente especial para nos ajudar a montar nossa nova casa com amor e carinho.
-            </p>
-            <button class="btn btn-primary full-button">Escolher presente</button>
-          </div>
-
-          <div class="gift-card">
-            <div class="gift-top">
-              <div>
-                <h4>Air Fryer</h4>
-                <p>R$ 420,00</p>
-              </div>
-              <span class="gift-status reserved">Reservado</span>
-            </div>
-            <p class="gift-description">
-              Um presente especial para nos ajudar a montar nossa nova casa com amor e carinho.
-            </p>
-            <button class="btn btn-disabled full-button" disabled>Indisponível</button>
-          </div>
-
-          <div class="gift-card">
-            <div class="gift-top">
-              <div>
-                <h4>Conjunto de Taças</h4>
-                <p>R$ 180,00</p>
-              </div>
-              <span class="gift-status available">Disponível</span>
-            </div>
-            <p class="gift-description">
-              Um presente especial para nos ajudar a montar nossa nova casa com amor e carinho.
-            </p>
-            <button class="btn btn-primary full-button">Escolher presente</button>
-          </div>
-
-          <div class="gift-card">
-            <div class="gift-top">
-              <div>
-                <h4>Liquidificador</h4>
-                <p>R$ 210,00</p>
-              </div>
-              <span class="gift-status available">Disponível</span>
-            </div>
-            <p class="gift-description">
-              Um presente especial para nos ajudar a montar nossa nova casa com amor e carinho.
-            </p>
-            <button class="btn btn-primary full-button">Escolher presente</button>
-          </div>
-
-          <div class="gift-card">
-            <div class="gift-top">
-              <div>
-                <h4>Ajuda para Lua de Mel</h4>
-                <p>Valor livre</p>
-              </div>
-              <span class="gift-status available">Disponível</span>
-            </div>
-            <p class="gift-description">
-              Um presente especial para nos ajudar a montar nossa nova casa com amor e carinho.
-            </p>
-            <button class="btn btn-primary full-button">Escolher presente</button>
-          </div>
-
-          <div class="gift-card">
-            <div class="gift-top">
-              <div>
-                <h4>Jogo de Cama</h4>
-                <p>R$ 260,00</p>
-              </div>
-              <span class="gift-status reserved">Reservado</span>
-            </div>
-            <p class="gift-description">
-              Um presente especial para nos ajudar a montar nossa nova casa com amor e carinho.
-            </p>
-            <button class="btn btn-disabled full-button" disabled>Indisponível</button>
-          </div>
+        <div class="gift-grid" id="giftGrid">
+          <p class="gift-loading">Carregando presentes...</p>
         </div>
       </div>
     </section>
@@ -528,7 +448,7 @@
     </section>
   </main>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js"></script>
 </body>
 </html>

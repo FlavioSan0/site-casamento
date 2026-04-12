@@ -6,8 +6,6 @@ let supabaseClient = null;
 if (!window.supabase) {
   console.error("Supabase JS não foi carregado. Verifique o script CDN no index.html.");
 } else {
-  console.log("Supabase JS carregado com sucesso.");
-
   try {
     supabaseClient = window.supabase.createClient(
       SUPABASE_URL,
@@ -63,7 +61,6 @@ if (rsvpForm) {
     event.preventDefault();
 
     if (!supabaseClient) {
-      console.error("Supabase client está nulo.");
       if (formMessage) {
         formMessage.textContent =
           "Não foi possível conectar ao banco de dados no momento.";
@@ -105,27 +102,20 @@ if (rsvpForm) {
       formMessage.textContent = "";
     }
 
-    const payload = {
-      nome,
-      telefone: telefone || null,
-      acompanhantes,
-      presenca,
-      observacoes: observacoes || null,
-    };
-
-    console.log("Enviando confirmação:", payload);
-
     try {
-      const { data, error } = await supabaseClient
-        .from("confirmacoes")
-        .insert([payload]);
+      const { error } = await supabaseClient.from("confirmacoes").insert([
+        {
+          nome,
+          telefone: telefone || null,
+          acompanhantes,
+          presenca,
+          observacoes: observacoes || null,
+        },
+      ]);
 
       if (error) {
-        console.error("Erro retornado pelo Supabase:", error);
         throw error;
       }
-
-      console.log("Confirmação enviada com sucesso:", data);
 
       if (formMessage) {
         formMessage.textContent = "Confirmação enviada com sucesso. Obrigado!";
@@ -149,6 +139,157 @@ if (rsvpForm) {
     }
   });
 }
+
+const giftGrid = document.getElementById("giftGrid");
+
+async function loadGifts() {
+  if (!giftGrid) return;
+
+  if (!supabaseClient) {
+    giftGrid.innerHTML = '<p class="gift-empty">Não foi possível carregar os presentes no momento.</p>';
+    return;
+  }
+
+  giftGrid.innerHTML = '<p class="gift-loading">Carregando presentes...</p>';
+
+  try {
+    const { data, error } = await supabaseClient
+      .from("presentes")
+      .select("*")
+      .order("id", { ascending: true });
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data || data.length === 0) {
+      giftGrid.innerHTML = '<p class="gift-empty">Nenhum presente cadastrado no momento.</p>';
+      return;
+    }
+
+    giftGrid.innerHTML = data.map(createGiftCard).join("");
+    bindGiftButtons();
+  } catch (error) {
+    console.error("Erro ao carregar presentes:", error);
+    giftGrid.innerHTML = '<p class="gift-empty">Não foi possível carregar os presentes agora.</p>';
+  }
+}
+
+function createGiftCard(gift) {
+  const reserved = gift.status === "reservado";
+
+  return `
+    <div class="gift-card" data-gift-id="${gift.id}">
+      <div class="gift-top">
+        <div>
+          <h4>${escapeHtml(gift.nome)}</h4>
+          <p>${escapeHtml(gift.valor || "")}</p>
+        </div>
+        <span class="gift-status ${reserved ? "reserved" : "available"}">
+          ${reserved ? "Reservado" : "Disponível"}
+        </span>
+      </div>
+
+      <p class="gift-description">
+        ${escapeHtml(gift.descricao || "Um presente especial para nos ajudar a montar nossa nova casa com amor e carinho.")}
+      </p>
+
+      ${
+        reserved
+          ? `
+            <button class="btn btn-disabled full-button" disabled>Indisponível</button>
+          `
+          : `
+            <div class="gift-reserver">
+              <input
+                type="text"
+                placeholder="Seu nome para reservar"
+                class="gift-name-input"
+              />
+              <button class="btn btn-primary reserve-gift-btn" data-id="${gift.id}" type="button">
+                Reservar
+              </button>
+            </div>
+            <p class="gift-feedback" id="gift-feedback-${gift.id}"></p>
+          `
+      }
+    </div>
+  `;
+}
+
+function bindGiftButtons() {
+  const reserveButtons = document.querySelectorAll(".reserve-gift-btn");
+
+  reserveButtons.forEach((button) => {
+    button.addEventListener("click", async function () {
+      const giftId = Number(button.dataset.id);
+      const card = button.closest(".gift-card");
+      const input = card?.querySelector(".gift-name-input");
+      const feedback = document.getElementById(`gift-feedback-${giftId}`);
+
+      const reservadoPor = input?.value.trim() || "";
+
+      if (!reservadoPor) {
+        if (feedback) {
+          feedback.textContent = "Informe seu nome para reservar o presente.";
+          feedback.classList.add("error");
+        }
+        return;
+      }
+
+      button.disabled = true;
+      button.textContent = "Reservando...";
+
+      if (feedback) {
+        feedback.textContent = "";
+        feedback.classList.remove("error");
+      }
+
+      try {
+        const { error } = await supabaseClient
+          .from("presentes")
+          .update({
+            status: "reservado",
+            reservado_por: reservadoPor,
+          })
+          .eq("id", giftId)
+          .eq("status", "disponivel");
+
+        if (error) {
+          throw error;
+        }
+
+        if (feedback) {
+          feedback.textContent = "Presente reservado com sucesso.";
+        }
+
+        await loadGifts();
+      } catch (error) {
+        console.error("Erro ao reservar presente:", error);
+
+        if (feedback) {
+          feedback.textContent =
+            "Não foi possível reservar agora. Tente novamente.";
+          feedback.classList.add("error");
+        }
+
+        button.disabled = false;
+        button.textContent = "Reservar";
+      }
+    });
+  });
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+loadGifts();
 
 const copyPixButton = document.getElementById("copyPixButton");
 const pixKey = document.getElementById("pixKey");
