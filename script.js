@@ -1,10 +1,19 @@
 const SUPABASE_URL = "https://zmomnbtqxttlgpxdvmzr.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_doB-Z-J7ingNc--jiPHSyQ__0HY95qI";
 
-const supabaseClient =
-  window.supabase && SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY
-    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
-    : null;
+let supabaseClient = null;
+
+if (!window.supabase) {
+  console.error("Supabase JS não foi carregado no navegador.");
+} else if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+  console.error("URL ou chave pública do Supabase não foram definidas.");
+} else {
+  supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+  );
+  console.log("Cliente Supabase iniciado com sucesso.");
+}
 
 const weddingDate = new Date("2026-08-15T17:30:00");
 
