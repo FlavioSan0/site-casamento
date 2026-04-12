@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flávio & Ana Paula | Casamento</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="hero">
+    <div class="overlay"></div>
+
+    <div class="container hero-content">
+      <nav class="navbar">
+        <div class="brand">
+          <p class="brand-subtitle">Convite de Casamento</p>
+          <h1>Flávio & Ana Paula</h1>
+        </div>
+
+        <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu" aria-expanded="false">
+          ☰
+        </button>
+
+        <div class="nav-links" id="navLinks">
+          <a href="#evento">Evento</a>
+          <a href="#momentos">Momentos</a>
+          <a href="#confirmacao">Confirmar Presença</a>
+          <a href="#presentes">Lista de Presentes</a>
+        </div>
+      </nav>
+
+      <div class="hero-grid">
+        <div class="hero-text">
+          <p class="event-date">15 de agosto de 2026 • 17h30</p>
+
+          <h2>Um novo capítulo da nossa história começa aqui.</h2>
+
+          <p class="hero-description">
+            Entre sonhos, oração e amor, estamos construindo o dia mais especial das nossas vidas.
+            Será uma alegria imensa ter você conosco para celebrar esse momento tão único.
+          </p>
+
+          <div class="countdown-box">
+            <p class="countdown-title">Contagem regressiva</p>
+
+            <div class="countdown-grid">
+              <div class="countdown-item">
+                <span id="days">00</span>
+                <small>Dias</small>
+              </div>
+              <div class="countdown-item">
+                <span id="hours">00</span>
+                <small>Horas</small>
+              </div>
+              <div class="countdown-item">
+                <span id="minutes">00</span>
+                <small>Min</small>
+              </div>
+              <div class="countdown-item">
+                <span id="seconds">00</span>
+                <small>Seg</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-buttons">
+            <a href="#confirmacao" class="btn btn-light">Confirmar presença</a>
+            <a href="#presentes" class="btn btn-outline">Ver presentes</a>
+          </div>
+        </div>
+
+        <div class="hero-cards">
+          <div class="glass-card photo-card full-width">
+            <img
+              src="imagens/casal-principal.jpg"
+              alt="Foto principal do casal"
+              class="hero-photo"
+            />
+          </div>
+
+          <div class="glass-card">
+            <p class="card-label">Cerimônia</p>
+            <div class="card-info-line">
+              <span class="card-icon">⛪</span>
+              <div>
+                <p class="card-title">17h30</p>
+                <p class="card-text">Cerimônia</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <p class="card-label">Recepção</p>
+            <div class="card-info-line">
+              <span class="card-icon">🎉</span>
+              <div>
+                <p class="card-title">Após a cerimônia</p>
+                <p class="card-text">Recepção</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-card full-width">
+            <p class="card-label">Mensagem</p>
+            <p class="card-message">
+              Mais do que um convite, este é um pedido carinhoso para que você esteja conosco em
+              um dos capítulos mais marcantes da nossa história.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section id="evento" class="section">
+      <div class="container">
+        <div class="section-header">
+          <p class="section-tag">Informações do evento</p>
+          <h3>Tudo o que você precisa saber</h3>
+          <p class="section-description">
+            Preparamos este espaço para que você encontre com facilidade os detalhes da cerimônia,
+            da recepção, da confirmação de presença e da nossa lista de presentes.
+          </p>
+        </div>
+
+        <div class="cards-grid two-columns">
+          <div class="info-card">
+            <div class="info-card-header">
+              <span class="info-icon church">⛪</span>
+              <h4>Cerimônia</h4>
+            </div>
+
+            <p class="info-card-text">
+              15 de agosto de 2026 às 17h30<br />
+              Toque no botão abaixo para abrir a localização da cerimônia.
+            </p>
+
+            <a
+              href="https://maps.app.goo.gl/2c9QPnZt2JkFpGRa7?g_st=ac"
+              target="_blank"
+              rel="noreferrer"
+              class="btn btn-primary"
+            >
+              Ver localização
+            </a>
+          </div>
+
+          <div class="info-card">
+            <div class="info-card-header">
+              <span class="info-icon party">🎉</span>
+              <h4>Recepção</h4>
+            </div>
+
+            <p class="info-card-text">
+              Após a cerimônia<br />
+              Toque no botão abaixo para abrir a localização da recepção.
+            </p>
+
+            <a
+              href="https://maps.app.goo.gl/zAZhyEjbgScpsJKG7?g_st=ac"
+              target="_blank"
+              rel="noreferrer"
+              class="btn btn-primary"
+            >
+              Ver localização
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="momentos" class="section section-white">
+      <div class="container">
+        <div class="section-header">
+          <p class="section-tag">Pré-wedding</p>
+          <h3>Momentos do nosso ensaio</h3>
+          <p class="section-description">
+            Essas fotos fazem parte do nosso pré-wedding, um registro especial de uma fase linda da
+            nossa caminhada até o altar. Ficamos felizes em compartilhar esse pedacinho da nossa história com você.
+          </p>
+        </div>
+
+        <div class="gallery-grid">
+          <div class="gallery-item gallery-large">
+            <img src="imagens/momento-1.jpg" alt="Foto do pré-wedding 1" />
+          </div>
+
+          <div class="gallery-item">
+            <img src="imagens/momento-2.jpg" alt="Foto do pré-wedding 2" />
+          </div>
+
+          <div class="gallery-item">
+            <img src="imagens/momento-3.jpg" alt="Foto do pré-wedding 3" />
+          </div>
+
+          <div class="gallery-item">
+            <img src="imagens/momento-4.jpg" alt="Foto do pré-wedding 4" />
+          </div>
+
+          <div class="gallery-item">
+            <img src="imagens/momento-5.jpg" alt="Foto do pré-wedding 5" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-light">
+      <div class="container">
+        <div class="section-header">
+          <p class="section-tag">Dress code</p>
+          <h3>Esporte fino</h3>
+          <p class="section-description">
+            Para este dia especial, sugerimos traje esporte fino. Queremos que todos estejam
+            elegantes e confortáveis para celebrar conosco.
+          </p>
+        </div>
+
+        <div class="cards-grid two-columns">
+          <div class="info-card">
+            <div class="info-card-header">
+              <span class="info-icon men">🤵</span>
+              <h4>Homens</h4>
+            </div>
+
+            <ul class="dress-list">
+              <li>Camisa social</li>
+              <li>Calça de sarja ou alfaiataria</li>
+              <li>Sapato social ou mocassim</li>
+              <li>Blazer opcional</li>
+            </ul>
+
+            <div class="highlight-box">
+              <strong>Evitar:</strong>
+              <p>Bermuda, jeans e boné.</p>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <div class="info-card-header">
+              <span class="info-icon women">👗</span>
+              <h4>Mulheres</h4>
+            </div>
+
+            <ul class="dress-list">
+              <li>Vestido longo ou midi</li>
+              <li>Saia longa com blusa elegante</li>
+              <li>Sapatos com salto ou rasteira refinada</li>
+            </ul>
+
+            <div class="highlight-box">
+              <strong>Evitar:</strong>
+              <p>Vestidos curtos, roupas muito justas e transparências excessivas.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-card centered-card reserved-colors-card">
+          <p class="section-tag">Orientação de cores</p>
+          <h4>Cores reservadas</h4>
+          <p class="info-card-text center">
+            Pedimos, com carinho, que os convidados evitem tons de vermelho bordô e azul marinho,
+            pois essas cores foram reservadas para compor a paleta especial do casamento.
+          </p>
+
+          <div class="color-tags">
+            <div class="color-tag">
+              <span class="color-dot bordo"></span>
+              <span>Tons de bordô</span>
+            </div>
+
+            <div class="color-tag">
+              <span class="color-dot navy"></span>
+              <span>Tons de azul marinho</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="notice-box">
+          <p>
+            A proposta é manter a harmonia visual da cerimônia e valorizar a identidade do
+            casamento, respeitando as cores reservadas para os noivos e composição do evento.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-soft">
+      <div class="container">
+        <div class="cards-grid four-columns">
+          <div class="stat-card">
+            <span>15</span>
+            <small>Dia</small>
+          </div>
+          <div class="stat-card">
+            <span>08</span>
+            <small>Mês</small>
+          </div>
+          <div class="stat-card">
+            <span>2026</span>
+            <small>Ano</small>
+          </div>
+          <div class="stat-card">
+            <span>17h30</span>
+            <small>Horário</small>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="confirmacao" class="section">
+      <div class="container rsvp-grid">
+        <div>
+          <p class="section-tag">RSVP</p>
+          <h3>Confirme sua presença</h3>
+          <p class="section-description left">
+            Preencha os dados abaixo para confirmar sua participação. Ficaremos muito felizes em
+            compartilhar esse momento com você.
+          </p>
+        </div>
+
+        <form class="form-card" id="rsvpForm">
+          <div class="form-group">
+            <label for="nome">Nome completo</label>
+            <input type="text" id="nome" name="nome" placeholder="Digite seu nome" required />
+          </div>
+
+          <div class="form-group">
+            <label for="telefone">Telefone</label>
+            <input type="text" id="telefone" name="telefone" placeholder="(00) 00000-0000" />
+          </div>
+
+          <div class="form-group">
+            <label for="acompanhantes">Quantidade de acompanhantes</label>
+            <input type="number" id="acompanhantes" name="acompanhantes" placeholder="0" min="0" />
+          </div>
+
+          <div class="form-group">
+            <label for="presenca">Você irá comparecer?</label>
+            <select id="presenca" name="presenca" required>
+              <option value="">Selecione</option>
+              <option value="Sim, estarei presente">Sim, estarei presente</option>
+              <option value="Não poderei comparecer">Não poderei comparecer</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="observacoes">Observações</label>
+            <textarea
+              id="observacoes"
+              name="observacoes"
+              rows="4"
+              placeholder="Restrição alimentar, mensagem ou observação"
+            ></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-primary full-button">Enviar confirmação</button>
+          <p id="formMessage" class="form-message"></p>
+        </form>
+      </div>
+    </section>
+
+    <section id="presentes" class="section section-white">
+      <div class="container">
+        <div class="section-header">
+          <p class="section-tag">Lista de presentes</p>
+          <h3>Escolha um presente com carinho</h3>
+          <p class="section-description">
+            Criamos uma seleção de presentes para nos ajudar nessa nova fase. Depois, podemos
+            conectar esta área ao banco para marcar automaticamente os itens reservados.
+          </p>
+        </div>
+
+        <div class="gift-grid">
+          <div class="gift-card">
+            <div class="gift-top">
+              <div>
+                <h4>Jogo de Panelas</h4>
+                <p>R$ 350,00</p>
+              </div>
+              <span class="gift-status available">Disponível</span>
+            </div>
+            <p class="gift-description">
+              Um presente especial para nos ajudar a montar nossa nova casa com amor e carinho.
+            </p>
+            <button class="btn btn-primary full-button">Escolher presente</button>
+          </div>
+
+          <div class="gift-card">
+            <div class="gift-top">
+              <div>
+                <h4>Air Fryer</h4>
+                <p>R$ 420,00</p>
+              </div>
+              <span class="gift-status reserved">Reservado</span>
+            </div>
+            <p class="gift-description">
+              Um presente especial para nos ajudar a montar nossa nova casa com amor e carinho.
+            </p>
+            <button class="btn btn-disabled full-button" disabled>Indisponível</button>
+          </div>
+
+          <div class="gift-card">
+            <div class="gift-top">
+              <div>
+                <h4>Conjunto de Taças</h4>
+                <p>R$ 180,00</p>
+              </div>
+              <span class="gift-status available">Disponível</span>
+            </div>
+            <p class="gift-description">
+              Um presente especial para nos ajudar a montar nossa nova casa com amor e carinho.
+            </p>
+            <button class="btn btn-primary full-button">Escolher presente</button>
+          </div>
+
+          <div class="gift-card">
+            <div class="gift-top">
+              <div>
+                <h4>Liquidificador</h4>
+                <p>R$ 210,00</p>
+              </div>
+              <span class="gift-status available">Disponível</span>
+            </div>
+            <p class="gift-description">
+              Um presente especial para nos ajudar a montar nossa nova casa com amor e carinho.
+            </p>
+            <button class="btn btn-primary full-button">Escolher presente</button>
+          </div>
+
+          <div class="gift-card">
+            <div class="gift-top">
+              <div>
+                <h4>Ajuda para Lua de Mel</h4>
+                <p>Valor livre</p>
+              </div>
+              <span class="gift-status available">Disponível</span>
+            </div>
+            <p class="gift-description">
+              Um presente especial para nos ajudar a montar nossa nova casa com amor e carinho.
+            </p>
+            <button class="btn btn-primary full-button">Escolher presente</button>
+          </div>
+
+          <div class="gift-card">
+            <div class="gift-top">
+              <div>
+                <h4>Jogo de Cama</h4>
+                <p>R$ 260,00</p>
+              </div>
+              <span class="gift-status reserved">Reservado</span>
+            </div>
+            <p class="gift-description">
+              Um presente especial para nos ajudar a montar nossa nova casa com amor e carinho.
+            </p>
+            <button class="btn btn-disabled full-button" disabled>Indisponível</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="pix" class="section section-pix">
+      <div class="container">
+        <div class="pix-card">
+          <div class="section-header pix-header">
+            <p class="section-tag">Presente via PIX</p>
+            <h3>Nos abençoe com uma contribuição</h3>
+            <p class="section-description">
+              Caso prefira, você também pode nos presentear via PIX. Toda contribuição será recebida com muito carinho e gratidão.
+            </p>
+          </div>
+
+          <div class="pix-content">
+            <div class="pix-info">
+              <p class="pix-label">Chave PIX</p>
+              <div class="pix-key-box">
+                <span id="pixKey">SEU-PIX-AQUI@example.com</span>
+                <button class="btn btn-primary pix-copy-btn" id="copyPixButton" type="button">
+                  Copiar chave
+                </button>
+              </div>
+              <p class="pix-note">
+                Substitua esta chave pela sua chave real de PIX, podendo ser e-mail, telefone, CPF ou chave aleatória.
+              </p>
+            </div>
+
+            <div class="pix-qr">
+              <div class="qr-placeholder">
+                <span>QR Code PIX</span>
+              </div>
+              <p class="pix-note center">
+                Aqui você pode inserir a imagem do QR Code do PIX.
+              </p>
+            </div>
+          </div>
+
+          <p class="pix-feedback" id="pixFeedback"></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section couple-highlight-section">
+      <div class="container couple-highlight-grid">
+        <div class="couple-highlight-text">
+          <p class="section-tag">Nosso amor</p>
+          <h3>Um dia sonhado, preparado com carinho e fé</h3>
+          <p class="section-description left">
+            Cada detalhe deste momento foi pensado com amor. Estamos ansiosos para viver esse dia e
+            celebrá-lo ao lado de pessoas especiais como você.
+          </p>
+        </div>
+
+        <div class="couple-highlight-image">
+          <img src="imagens/casal-final.jpg" alt="Foto especial do casal" />
+        </div>
+      </div>
+    </section>
+
+    <section class="footer-section">
+      <div class="container footer-content">
+        <p class="section-tag light">Com amor</p>
+        <h3>Esperamos você neste dia tão especial</h3>
+        <p>
+          Obrigado por fazer parte da nossa caminhada. Sua presença, carinho e torcida tornam esse
+          sonho ainda mais especial para nós.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
