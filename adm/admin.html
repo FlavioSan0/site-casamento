@@ -71,7 +71,7 @@
 
         <div class="stat-card">
           <span id="totalPresentesReservados">0</span>
-          <small>Presentes reservados</small>
+          <small>Cotas reservadas</small>
         </div>
       </section>
 
@@ -108,7 +108,7 @@
         <div class="block-header">
           <div>
             <p class="tag">Presentes</p>
-            <h2>Reservas de presentes</h2>
+            <h2>Controle de cotas</h2>
           </div>
         </div>
 
@@ -118,13 +118,40 @@
               <tr>
                 <th>Presente</th>
                 <th>Valor</th>
-                <th>Status</th>
-                <th>Reservado por</th>
+                <th>Total</th>
+                <th>Reservadas</th>
+                <th>Disponíveis</th>
               </tr>
             </thead>
             <tbody id="presentesTableBody">
               <tr>
-                <td colspan="4">Carregando presentes...</td>
+                <td colspan="5">Carregando presentes...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel-block">
+        <div class="block-header">
+          <div>
+            <p class="tag">Reservas</p>
+            <h2>Quem escolheu os presentes</h2>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Presente</th>
+                <th>Reservado por</th>
+                <th>Data</th>
+              </tr>
+            </thead>
+            <tbody id="reservasTableBody">
+              <tr>
+                <td colspan="3">Carregando reservas...</td>
               </tr>
             </tbody>
           </table>

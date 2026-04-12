@@ -6,6 +6,8 @@ let supabaseClient = null;
 if (!window.supabase) {
   console.error("Supabase JS não foi carregado. Verifique o script CDN no index.html.");
 } else {
+  console.log("Supabase JS carregado com sucesso.");
+
   try {
     supabaseClient = window.supabase.createClient(
       SUPABASE_URL,
@@ -61,6 +63,7 @@ if (rsvpForm) {
     event.preventDefault();
 
     if (!supabaseClient) {
+      console.error("Supabase client está nulo.");
       if (formMessage) {
         formMessage.textContent =
           "Não foi possível conectar ao banco de dados no momento.";
@@ -102,20 +105,27 @@ if (rsvpForm) {
       formMessage.textContent = "";
     }
 
+    const payload = {
+      nome,
+      telefone: telefone || null,
+      acompanhantes,
+      presenca,
+      observacoes: observacoes || null,
+    };
+
+    console.log("Enviando confirmação:", payload);
+
     try {
-      const { error } = await supabaseClient.from("confirmacoes").insert([
-        {
-          nome,
-          telefone: telefone || null,
-          acompanhantes,
-          presenca,
-          observacoes: observacoes || null,
-        },
-      ]);
+      const { data, error } = await supabaseClient
+        .from("confirmacoes")
+        .insert([payload]);
 
       if (error) {
+        console.error("Erro retornado pelo Supabase:", error);
         throw error;
       }
+
+      console.log("Confirmação enviada com sucesso:", data);
 
       if (formMessage) {
         formMessage.textContent = "Confirmação enviada com sucesso. Obrigado!";
@@ -176,7 +186,10 @@ async function loadGifts() {
 }
 
 function createGiftCard(gift) {
-  const reserved = gift.status === "reservado";
+  const quantidadeTotal = Number(gift.quantidade_total || 0);
+  const quantidadeReservada = Number(gift.quantidade_reservada || 0);
+  const quantidadeDisponivel = Math.max(quantidadeTotal - quantidadeReservada, 0);
+  const esgotado = quantidadeDisponivel <= 0;
 
   return `
     <div class="gift-card" data-gift-id="${gift.id}">
@@ -185,17 +198,24 @@ function createGiftCard(gift) {
           <h4>${escapeHtml(gift.nome)}</h4>
           <p>${escapeHtml(gift.valor || "")}</p>
         </div>
-        <span class="gift-status ${reserved ? "reserved" : "available"}">
-          ${reserved ? "Reservado" : "Disponível"}
+        <span class="gift-status ${esgotado ? "reserved" : "available"}">
+          ${esgotado ? "Esgotado" : "Disponível"}
         </span>
       </div>
 
       <p class="gift-description">
-        ${escapeHtml(gift.descricao || "Um presente especial para nos ajudar a montar nossa nova casa com amor e carinho.")}
+        ${escapeHtml(
+          gift.descricao ||
+            "Um presente especial para nos ajudar a montar nossa nova casa com amor e carinho."
+        )}
+      </p>
+
+      <p class="gift-description">
+        <strong>Cotas disponíveis:</strong> ${quantidadeDisponivel} de ${quantidadeTotal}
       </p>
 
       ${
-        reserved
+        esgotado
           ? `
             <button class="btn btn-disabled full-button" disabled>Indisponível</button>
           `
@@ -207,7 +227,7 @@ function createGiftCard(gift) {
                 class="gift-name-input"
               />
               <button class="btn btn-primary reserve-gift-btn" data-id="${gift.id}" type="button">
-                Reservar
+                Reservar 1 cota
               </button>
             </div>
             <p class="gift-feedback" id="gift-feedback-${gift.id}"></p>
@@ -246,21 +266,13 @@ function bindGiftButtons() {
       }
 
       try {
-        const { error } = await supabaseClient
-          .from("presentes")
-          .update({
-            status: "reservado",
-            reservado_por: reservadoPor,
-          })
-          .eq("id", giftId)
-          .eq("status", "disponivel");
+        const { error } = await supabaseClient.rpc("reservar_presente", {
+          p_presente_id: giftId,
+          p_reservado_por: reservadoPor,
+        });
 
         if (error) {
           throw error;
-        }
-
-        if (feedback) {
-          feedback.textContent = "Presente reservado com sucesso.";
         }
 
         await loadGifts();
@@ -269,24 +281,15 @@ function bindGiftButtons() {
 
         if (feedback) {
           feedback.textContent =
-            "Não foi possível reservar agora. Tente novamente.";
+            error?.message || "Não foi possível reservar agora. Tente novamente.";
           feedback.classList.add("error");
         }
 
         button.disabled = false;
-        button.textContent = "Reservar";
+        button.textContent = "Reservar 1 cota";
       }
     });
   });
-}
-
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
 }
 
 loadGifts();
@@ -329,4 +332,13 @@ if (menuToggle && navLinks) {
       menuToggle.setAttribute("aria-expanded", "false");
     });
   });
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }

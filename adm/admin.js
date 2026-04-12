@@ -15,6 +15,7 @@ const logoutButton = document.getElementById("logoutButton");
 
 const confirmacoesTableBody = document.getElementById("confirmacoesTableBody");
 const presentesTableBody = document.getElementById("presentesTableBody");
+const reservasTableBody = document.getElementById("reservasTableBody");
 
 const totalConfirmacoes = document.getElementById("totalConfirmacoes");
 const totalPresentesSim = document.getElementById("totalPresentesSim");
@@ -98,7 +99,7 @@ if (logoutButton) {
 }
 
 async function loadDashboardData() {
-  await Promise.all([loadConfirmacoes(), loadPresentes()]);
+  await Promise.all([loadConfirmacoes(), loadPresentes(), loadReservas()]);
 }
 
 async function loadConfirmacoes() {
@@ -137,7 +138,34 @@ async function loadPresentes() {
     console.error("Erro ao carregar presentes:", error);
     presentesTableBody.innerHTML = `
       <tr>
-        <td colspan="4">Não foi possível carregar os presentes.</td>
+        <td colspan="5">Não foi possível carregar os presentes.</td>
+      </tr>
+    `;
+  }
+}
+
+async function loadReservas() {
+  try {
+    const { data, error } = await supabaseClient
+      .from("reservas_presentes")
+      .select(`
+        id,
+        reservado_por,
+        created_at,
+        presentes (
+          nome
+        )
+      `)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    renderReservas(data || []);
+  } catch (error) {
+    console.error("Erro ao carregar reservas:", error);
+    reservasTableBody.innerHTML = `
+      <tr>
+        <td colspan="3">Não foi possível carregar as reservas.</td>
       </tr>
     `;
   }
@@ -179,7 +207,7 @@ function renderPresentes(presentes) {
   if (!presentes.length) {
     presentesTableBody.innerHTML = `
       <tr>
-        <td colspan="4">Nenhum presente encontrado.</td>
+        <td colspan="5">Nenhum presente encontrado.</td>
       </tr>
     `;
     return;
@@ -187,18 +215,42 @@ function renderPresentes(presentes) {
 
   presentesTableBody.innerHTML = presentes
     .map((item) => {
-      const reservado = item.status === "reservado";
+      const total = Number(item.quantidade_total || 0);
+      const reservadas = Number(item.quantidade_reservada || 0);
+      const disponiveis = Math.max(total - reservadas, 0);
 
       return `
         <tr>
           <td>${escapeHtml(item.nome || "")}</td>
           <td>${escapeHtml(item.valor || "-")}</td>
-          <td>
-            <span class="status-badge ${reservado ? "status-reservado" : "status-disponivel"}">
-              ${escapeHtml(item.status || "-")}
-            </span>
-          </td>
+          <td>${total}</td>
+          <td>${reservadas}</td>
+          <td>${disponiveis}</td>
+        </tr>
+      `;
+    })
+    .join("");
+}
+
+function renderReservas(reservas) {
+  if (!reservas.length) {
+    reservasTableBody.innerHTML = `
+      <tr>
+        <td colspan="3">Nenhuma reserva encontrada.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  reservasTableBody.innerHTML = reservas
+    .map((item) => {
+      const nomePresente = item.presentes?.nome || "-";
+
+      return `
+        <tr>
+          <td>${escapeHtml(nomePresente)}</td>
           <td>${escapeHtml(item.reservado_por || "-")}</td>
+          <td>${formatDate(item.created_at)}</td>
         </tr>
       `;
     })
@@ -226,7 +278,11 @@ function updateConfirmacoesStats(confirmacoes) {
 }
 
 function updatePresentesStats(presentes) {
-  const reservados = presentes.filter((item) => item.status === "reservado").length;
+  const reservados = presentes.reduce(
+    (acc, item) => acc + Number(item.quantidade_reservada || 0),
+    0
+  );
+
   totalPresentesReservados.textContent = reservados;
 }
 
