@@ -850,13 +850,12 @@ textarea {
 }
 
 @media (max-width: 992px) {
-.rsvp-grid,
+  .rsvp-grid,
   .gift-grid,
   .couple-highlight-grid,
   .pix-content {
     grid-template-columns: 1fr;
   }
-}
 
   .four-columns {
     grid-template-columns: repeat(2, 1fr);
@@ -878,7 +877,7 @@ textarea {
   .couple-highlight-image img {
     height: 380px;
   }
-
+}
 
 @media (max-width: 768px) {
   .hero-content {
@@ -1077,6 +1076,71 @@ textarea {
   .couple-highlight-image img {
     height: 280px;
   }
+
+  .section-light .two-columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    align-items: start;
+  }
+
+  .section-light .info-card {
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .section-light .info-card-header {
+    margin-bottom: 12px;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .section-light .info-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    font-size: 1.05rem;
+  }
+
+  .section-light .info-card-header h4 {
+    font-size: 0.98rem;
+    line-height: 1.2;
+  }
+
+  .section-light .dress-list li {
+    margin-bottom: 7px;
+    padding-left: 14px;
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+
+  .section-light .highlight-box {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    font-size: 0.8rem;
+    line-height: 1.45;
+  }
+
+  .section-light .reserved-colors-card {
+    margin-top: 14px;
+  }
+
+  .section-light .reserved-colors-card h4 {
+    font-size: 1.15rem;
+  }
+
+  .section-light .color-tags {
+    gap: 12px;
+  }
+
+  .section-light .color-tag {
+    font-size: 0.84rem;
+  }
+
+  .section-light .color-dot {
+    width: 24px;
+    height: 24px;
+  }
 }
 
 @media (max-width: 420px) {
@@ -1131,6 +1195,62 @@ textarea {
   .pix-header h3 {
     font-size: 1.7rem;
   }
+
+  .section-light .two-columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .section-light .info-card {
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .section-light .info-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+  }
+
+  .section-light .info-card-header {
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .section-light .info-card-header h4 {
+    font-size: 0.92rem;
+  }
+
+  .section-light .dress-list li {
+    margin-bottom: 6px;
+    font-size: 0.76rem;
+    line-height: 1.4;
+  }
+
+  .section-light .highlight-box {
+    margin-top: 10px;
+    padding: 9px 10px;
+    font-size: 0.75rem;
+    line-height: 1.4;
+  }
+
+  .section-light .reserved-colors-card h4 {
+    font-size: 1.05rem;
+  }
+
+  .section-light .color-tags {
+    gap: 10px;
+  }
+
+  .section-light .color-tag {
+    font-size: 0.8rem;
+  }
+
+  .section-light .color-dot {
+    width: 22px;
+    height: 22px;
+  }
 }
 
 @media (max-width: 360px) {
@@ -1162,90 +1282,4 @@ textarea {
   .couple-highlight-image img {
     height: 240px;
   }
-
-  @media (max-width: 600px) {
-  .section-light .two-columns {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-
-  .section-light .info-card {
-    padding: 18px;
-  }
-
-  .section-light .info-card-header {
-    align-items: flex-start;
-    gap: 10px;
-  }
-
-  .section-light .info-card-header h4 {
-    font-size: 1.1rem;
-  }
-
-  .section-light .dress-list li {
-    font-size: 0.92rem;
-  }
-
-  .section-light .highlight-box {
-    margin-top: 16px;
-    padding: 14px;
-    font-size: 0.9rem;
-  }
-
-  .section-light .reserved-colors-card {
-    margin-top: 16px;
-  }
-}
-
-@media (max-width: 420px) {
-  .section-light .two-columns {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-  }
-
-  .section-light .info-card {
-    padding: 16px;
-    border-radius: 18px;
-  }
-
-  .section-light .info-icon {
-    width: 46px;
-    height: 46px;
-    border-radius: 14px;
-    font-size: 1.25rem;
-  }
-
-  .section-light .info-card-header h4 {
-    font-size: 1rem;
-  }
-
-  .section-light .dress-list li {
-    margin-bottom: 8px;
-    font-size: 0.88rem;
-    line-height: 1.4;
-  }
-
-  .section-light .highlight-box {
-    padding: 12px;
-    font-size: 0.86rem;
-  }
-
-  .section-light .reserved-colors-card h4 {
-    font-size: 1.2rem;
-  }
-
-  .section-light .color-tags {
-    gap: 14px;
-  }
-
-  .section-light .color-tag {
-    font-size: 0.86rem;
-  }
-
-  .section-light .color-dot {
-    width: 26px;
-    height: 26px;
-  }
-}
-
 }
