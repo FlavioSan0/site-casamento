@@ -84,6 +84,8 @@
         </div>
 
         <form id="giftForm" class="gift-form">
+          <input type="hidden" id="giftEditId" />
+
           <div class="gift-form-grid">
             <div class="form-group">
               <label for="giftNome">Nome do presente</label>
@@ -117,10 +119,44 @@
             <button type="submit" class="btn btn-primary" id="giftSubmitButton">
               Cadastrar presente
             </button>
+
+            <button type="button" class="btn btn-outline-dark hidden" id="giftCancelEditButton">
+              Cancelar edição
+            </button>
           </div>
 
           <p id="giftFormMessage" class="message"></p>
         </form>
+      </section>
+
+      <section class="panel-block">
+        <div class="block-header">
+          <div>
+            <p class="tag">Gerenciamento</p>
+            <h2>Presentes cadastrados</h2>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Presente</th>
+                <th>Valor</th>
+                <th>Tipo</th>
+                <th>Total</th>
+                <th>Reservadas</th>
+                <th>Disponíveis</th>
+                <th>Ação</th>
+              </tr>
+            </thead>
+            <tbody id="presentesManageTableBody">
+              <tr>
+                <td colspan="7">Carregando presentes...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <section class="panel-block">
@@ -146,35 +182,6 @@
             <tbody id="confirmacoesTableBody">
               <tr>
                 <td colspan="6">Carregando confirmações...</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="panel-block">
-        <div class="block-header">
-          <div>
-            <p class="tag">Presentes</p>
-            <h2>Controle de cotas</h2>
-          </div>
-        </div>
-
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Presente</th>
-                <th>Valor</th>
-                <th>Tipo</th>
-                <th>Total</th>
-                <th>Reservadas</th>
-                <th>Disponíveis</th>
-              </tr>
-            </thead>
-            <tbody id="presentesTableBody">
-              <tr>
-                <td colspan="6">Carregando presentes...</td>
               </tr>
             </tbody>
           </table>

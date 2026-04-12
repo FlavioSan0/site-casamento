@@ -16,12 +16,14 @@ const logoutButton = document.getElementById("logoutButton");
 const giftForm = document.getElementById("giftForm");
 const giftFormMessage = document.getElementById("giftFormMessage");
 const giftSubmitButton = document.getElementById("giftSubmitButton");
+const giftCancelEditButton = document.getElementById("giftCancelEditButton");
+const giftEditId = document.getElementById("giftEditId");
 const giftUsaCotas = document.getElementById("giftUsaCotas");
 const giftQuantidadeWrapper = document.getElementById("giftQuantidadeWrapper");
 const giftQuantidadeTotal = document.getElementById("giftQuantidadeTotal");
 
 const confirmacoesTableBody = document.getElementById("confirmacoesTableBody");
-const presentesTableBody = document.getElementById("presentesTableBody");
+const presentesManageTableBody = document.getElementById("presentesManageTableBody");
 const reservasTableBody = document.getElementById("reservasTableBody");
 
 const totalConfirmacoes = document.getElementById("totalConfirmacoes");
@@ -29,6 +31,8 @@ const totalPresentesSim = document.getElementById("totalPresentesSim");
 const totalPresentesNao = document.getElementById("totalPresentesNao");
 const totalAcompanhantes = document.getElementById("totalAcompanhantes");
 const totalPresentesReservados = document.getElementById("totalPresentesReservados");
+
+let currentGifts = [];
 
 async function checkSession() {
   const { data, error } = await supabaseClient.auth.getSession();
@@ -70,9 +74,35 @@ function updateGiftQuantityVisibility() {
   }
 }
 
+function resetGiftForm() {
+  giftForm.reset();
+  giftEditId.value = "";
+  giftSubmitButton.textContent = "Cadastrar presente";
+  giftCancelEditButton.classList.add("hidden");
+  giftFormMessage.textContent = "";
+  updateGiftQuantityVisibility();
+}
+
+function fillGiftFormForEdit(gift) {
+  document.getElementById("giftNome").value = gift.nome || "";
+  document.getElementById("giftValor").value = gift.valor || "";
+  document.getElementById("giftDescricao").value = gift.descricao || "";
+  giftUsaCotas.checked = !!gift.usa_cotas;
+  giftQuantidadeTotal.value = gift.quantidade_total || 1;
+  giftEditId.value = gift.id;
+  giftSubmitButton.textContent = "Salvar alterações";
+  giftCancelEditButton.classList.remove("hidden");
+  updateGiftQuantityVisibility();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
 if (giftUsaCotas) {
   giftUsaCotas.addEventListener("change", updateGiftQuantityVisibility);
   updateGiftQuantityVisibility();
+}
+
+if (giftCancelEditButton) {
+  giftCancelEditButton.addEventListener("click", resetGiftForm);
 }
 
 if (loginForm) {
@@ -127,6 +157,7 @@ if (giftForm) {
   giftForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
+    const editId = giftEditId.value ? Number(giftEditId.value) : null;
     const nome = document.getElementById("giftNome").value.trim();
     const valor = document.getElementById("giftValor").value.trim();
     const descricao = document.getElementById("giftDescricao").value.trim();
@@ -145,38 +176,86 @@ if (giftForm) {
       return;
     }
 
+    const existingGift = currentGifts.find((item) => Number(item.id) === Number(editId));
+    const quantidadeReservadaAtual = Number(existingGift?.quantidade_reservada || 0);
+
+    if (editId) {
+      if (!usaCotas && quantidadeReservadaAtual > 1) {
+        giftFormMessage.textContent =
+          "Este presente já possui mais de uma reserva. Mantenha-o como presente com cotas.";
+        giftFormMessage.style.color = "#800000";
+        return;
+      }
+
+      if (usaCotas && quantidadeTotal < quantidadeReservadaAtual) {
+        giftFormMessage.textContent =
+          "A quantidade total não pode ser menor do que a quantidade já reservada.";
+        giftFormMessage.style.color = "#800000";
+        return;
+      }
+    }
+
     giftSubmitButton.disabled = true;
-    giftSubmitButton.textContent = "Cadastrando...";
+    giftSubmitButton.textContent = editId ? "Salvando..." : "Cadastrando...";
     giftFormMessage.textContent = "";
 
     try {
-      const { error } = await supabaseClient.from("presentes").insert([
-        {
-          nome,
-          valor: valor || null,
-          descricao: descricao || null,
-          usa_cotas: usaCotas,
-          quantidade_total: quantidadeTotal,
-          quantidade_reservada: 0,
-          status: "disponivel",
-        },
-      ]);
+      if (editId) {
+        const quantidadeReservada = usaCotas
+          ? quantidadeReservadaAtual
+          : quantidadeReservadaAtual > 0
+            ? 1
+            : 0;
 
-      if (error) throw error;
+        const status = quantidadeReservada >= quantidadeTotal ? "reservado" : "disponivel";
 
-      giftFormMessage.textContent = "Presente cadastrado com sucesso.";
+        const { error } = await supabaseClient
+          .from("presentes")
+          .update({
+            nome,
+            valor: valor || null,
+            descricao: descricao || null,
+            usa_cotas: usaCotas,
+            quantidade_total: quantidadeTotal,
+            quantidade_reservada: quantidadeReservada,
+            status,
+          })
+          .eq("id", editId);
+
+        if (error) throw error;
+
+        giftFormMessage.textContent = "Presente atualizado com sucesso.";
+      } else {
+        const { error } = await supabaseClient.from("presentes").insert([
+          {
+            nome,
+            valor: valor || null,
+            descricao: descricao || null,
+            usa_cotas: usaCotas,
+            quantidade_total: quantidadeTotal,
+            quantidade_reservada: 0,
+            status: "disponivel",
+          },
+        ]);
+
+        if (error) throw error;
+
+        giftFormMessage.textContent = "Presente cadastrado com sucesso.";
+      }
+
       giftFormMessage.style.color = "#355b46";
-
-      giftForm.reset();
-      updateGiftQuantityVisibility();
+      resetGiftForm();
       await loadPresentes();
     } catch (error) {
-      console.error("Erro ao cadastrar presente:", error);
-      giftFormMessage.textContent = "Não foi possível cadastrar o presente.";
+      console.error("Erro ao salvar presente:", error);
+      giftFormMessage.textContent = "Não foi possível salvar o presente.";
       giftFormMessage.style.color = "#800000";
     } finally {
       giftSubmitButton.disabled = false;
-      giftSubmitButton.textContent = "Cadastrar presente";
+      giftSubmitButton.textContent = giftEditId.value ? "Salvar alterações" : "Cadastrar presente";
+      if (!giftEditId.value) {
+        giftSubmitButton.textContent = "Cadastrar presente";
+      }
     }
   });
 }
@@ -215,13 +294,14 @@ async function loadPresentes() {
 
     if (error) throw error;
 
-    renderPresentes(data || []);
-    updatePresentesStats(data || []);
+    currentGifts = data || [];
+    renderPresentes(currentGifts);
+    updatePresentesStats(currentGifts);
   } catch (error) {
     console.error("Erro ao carregar presentes:", error);
-    presentesTableBody.innerHTML = `
+    presentesManageTableBody.innerHTML = `
       <tr>
-        <td colspan="6">Não foi possível carregar os presentes.</td>
+        <td colspan="7">Não foi possível carregar os presentes.</td>
       </tr>
     `;
   }
@@ -288,15 +368,15 @@ function renderConfirmacoes(confirmacoes) {
 
 function renderPresentes(presentes) {
   if (!presentes.length) {
-    presentesTableBody.innerHTML = `
+    presentesManageTableBody.innerHTML = `
       <tr>
-        <td colspan="6">Nenhum presente encontrado.</td>
+        <td colspan="7">Nenhum presente encontrado.</td>
       </tr>
     `;
     return;
   }
 
-  presentesTableBody.innerHTML = presentes
+  presentesManageTableBody.innerHTML = presentes
     .map((item) => {
       const total = Number(item.quantidade_total || 0);
       const reservadas = Number(item.quantidade_reservada || 0);
@@ -311,10 +391,34 @@ function renderPresentes(presentes) {
           <td>${total}</td>
           <td>${reservadas}</td>
           <td>${disponiveis}</td>
+          <td>
+            <div class="action-button-group">
+              <button type="button" class="action-button edit-gift-button" data-id="${item.id}">
+                Editar
+              </button>
+            </div>
+          </td>
         </tr>
       `;
     })
     .join("");
+
+  bindEditGiftButtons();
+}
+
+function bindEditGiftButtons() {
+  const editButtons = document.querySelectorAll(".edit-gift-button");
+
+  editButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const giftId = Number(button.dataset.id);
+      const gift = currentGifts.find((item) => Number(item.id) === giftId);
+
+      if (!gift) return;
+
+      fillGiftFormForEdit(gift);
+    });
+  });
 }
 
 function renderReservas(reservas) {

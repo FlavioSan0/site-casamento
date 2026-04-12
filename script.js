@@ -186,10 +186,11 @@ async function loadGifts() {
 }
 
 function createGiftCard(gift) {
+  const usaCotas = !!gift.usa_cotas;
   const quantidadeTotal = Number(gift.quantidade_total || 0);
   const quantidadeReservada = Number(gift.quantidade_reservada || 0);
   const quantidadeDisponivel = Math.max(quantidadeTotal - quantidadeReservada, 0);
-  const esgotado = quantidadeDisponivel <= 0;
+  const esgotado = usaCotas ? quantidadeDisponivel <= 0 : gift.status === "reservado";
 
   return `
     <div class="gift-card" data-gift-id="${gift.id}">
@@ -210,9 +211,15 @@ function createGiftCard(gift) {
         )}
       </p>
 
-      <p class="gift-description">
-        <strong>Cotas disponíveis:</strong> ${quantidadeDisponivel} de ${quantidadeTotal}
-      </p>
+      ${
+        usaCotas
+          ? `
+            <p class="gift-description">
+              <strong>Cotas disponíveis:</strong> ${quantidadeDisponivel} de ${quantidadeTotal}
+            </p>
+          `
+          : ""
+      }
 
       ${
         esgotado
@@ -227,7 +234,7 @@ function createGiftCard(gift) {
                 class="gift-name-input"
               />
               <button class="btn btn-primary reserve-gift-btn" data-id="${gift.id}" type="button">
-                Reservar 1 cota
+                ${usaCotas ? "Reservar 1 cota" : "Reservar presente"}
               </button>
             </div>
             <p class="gift-feedback" id="gift-feedback-${gift.id}"></p>
@@ -286,7 +293,7 @@ function bindGiftButtons() {
         }
 
         button.disabled = false;
-        button.textContent = "Reservar 1 cota";
+        button.textContent = "Reservar";
       }
     });
   });
