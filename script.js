@@ -1,3 +1,11 @@
+const SUPABASE_URL = "https://zmomnbtqxttlgpxdvmzr.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_doB-Z-J7ingNc--jiPHSyQ__0HY95qI";
+
+const supabaseClient =
+  window.supabase && SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY
+    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
+    : null;
+
 const weddingDate = new Date("2026-08-15T17:30:00");
 
 function updateCountdown() {
@@ -35,27 +43,89 @@ setInterval(updateCountdown, 1000);
 
 const rsvpForm = document.getElementById("rsvpForm");
 const formMessage = document.getElementById("formMessage");
+const submitRsvpButton = document.getElementById("submitRsvpButton");
 
 if (rsvpForm) {
-  rsvpForm.addEventListener("submit", function (event) {
+  rsvpForm.addEventListener("submit", async function (event) {
     event.preventDefault();
 
-    const formData = {
-      nome: document.getElementById("nome").value.trim(),
-      telefone: document.getElementById("telefone").value.trim(),
-      acompanhantes: document.getElementById("acompanhantes").value.trim(),
-      presenca: document.getElementById("presenca").value,
-      observacoes: document.getElementById("observacoes").value.trim(),
-    };
-
-    console.log("Dados do RSVP:", formData);
-
-    if (formMessage) {
-      formMessage.textContent =
-        "Confirmação registrada localmente. Na próxima etapa vamos enviar isso para o banco de dados.";
+    if (!supabaseClient) {
+      if (formMessage) {
+        formMessage.textContent =
+          "Não foi possível conectar ao banco de dados no momento.";
+        formMessage.style.color = "#800000";
+      }
+      return;
     }
 
-    rsvpForm.reset();
+    const nome = document.getElementById("nome").value.trim();
+    const telefone = document.getElementById("telefone").value.trim();
+    const acompanhantesValor = document.getElementById("acompanhantes").value.trim();
+    const presenca = document.getElementById("presenca").value;
+    const observacoes = document.getElementById("observacoes").value.trim();
+
+    const acompanhantes = acompanhantesValor === "" ? 0 : Number(acompanhantesValor);
+
+    if (!nome || !presenca) {
+      if (formMessage) {
+        formMessage.textContent = "Preencha os campos obrigatórios para continuar.";
+        formMessage.style.color = "#800000";
+      }
+      return;
+    }
+
+    if (Number.isNaN(acompanhantes) || acompanhantes < 0) {
+      if (formMessage) {
+        formMessage.textContent = "Informe uma quantidade válida de acompanhantes.";
+        formMessage.style.color = "#800000";
+      }
+      return;
+    }
+
+    if (submitRsvpButton) {
+      submitRsvpButton.disabled = true;
+      submitRsvpButton.textContent = "Enviando...";
+    }
+
+    if (formMessage) {
+      formMessage.textContent = "";
+    }
+
+    try {
+      const { error } = await supabaseClient.from("confirmacoes").insert([
+        {
+          nome,
+          telefone: telefone || null,
+          acompanhantes,
+          presenca,
+          observacoes: observacoes || null,
+        },
+      ]);
+
+      if (error) {
+        throw error;
+      }
+
+      if (formMessage) {
+        formMessage.textContent = "Confirmação enviada com sucesso. Obrigado!";
+        formMessage.style.color = "#355b46";
+      }
+
+      rsvpForm.reset();
+    } catch (error) {
+      console.error("Erro ao enviar confirmação:", error);
+
+      if (formMessage) {
+        formMessage.textContent =
+          "Não foi possível enviar sua confirmação agora. Tente novamente em instantes.";
+        formMessage.style.color = "#800000";
+      }
+    } finally {
+      if (submitRsvpButton) {
+        submitRsvpButton.disabled = false;
+        submitRsvpButton.textContent = "Enviar confirmação";
+      }
+    }
   });
 }
 
@@ -73,7 +143,8 @@ if (copyPixButton && pixKey) {
       }
     } catch (error) {
       if (pixFeedback) {
-        pixFeedback.textContent = "Não foi possível copiar automaticamente. Copie a chave manualmente.";
+        pixFeedback.textContent =
+          "Não foi possível copiar automaticamente. Copie a chave manualmente.";
       }
       console.error("Erro ao copiar chave PIX:", error);
     }
