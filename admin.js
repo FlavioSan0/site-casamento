@@ -29,6 +29,7 @@ const reservasTableBody = document.getElementById("reservasTableBody");
 
 const totalConfirmacoes = document.getElementById("totalConfirmacoes");
 const totalPresentesSim = document.getElementById("totalPresentesSim");
+const totalPessoasConfirmadas = document.getElementById("totalPessoasConfirmadas");
 const totalPresentesNao = document.getElementById("totalPresentesNao");
 const totalAcompanhantes = document.getElementById("totalAcompanhantes");
 const totalPresentesReservados = document.getElementById("totalPresentesReservados");
@@ -483,19 +484,24 @@ function renderReservas(reservas) {
 function updateConfirmacoesStats(confirmacoes) {
   const confirmados = confirmacoes.filter(
     (item) => item.presenca === "Sim, estarei presente"
-  ).length;
+  );
+
+  const totalConfirmados = confirmados.length;
 
   const naoConfirmados = confirmacoes.filter(
     (item) => item.presenca === "Não poderei comparecer"
   ).length;
 
-  const acompanhantes = confirmacoes.reduce(
+  const acompanhantes = confirmados.reduce(
     (acc, item) => acc + Number(item.acompanhantes || 0),
     0
   );
 
+  const pessoasConfirmadas = totalConfirmados + acompanhantes;
+
   totalConfirmacoes.textContent = confirmacoes.length;
-  totalPresentesSim.textContent = confirmados;
+  totalPresentesSim.textContent = totalConfirmados;
+  totalPessoasConfirmadas.textContent = pessoasConfirmadas;
   totalPresentesNao.textContent = naoConfirmados;
   totalAcompanhantes.textContent = acompanhantes;
 }
