@@ -43,9 +43,15 @@
           <h1>Flávio & Ana Paula</h1>
         </div>
 
-        <button class="btn btn-outline-dark" id="logoutButton" type="button">
-          Sair
-        </button>
+        <div class="dashboard-actions">
+          <a href="index.html" class="btn btn-outline-dark">
+            Voltar para o site
+          </a>
+
+          <button class="btn btn-outline-dark" id="logoutButton" type="button">
+            Sair
+          </button>
+        </div>
       </header>
 
       <section class="stats-grid">
@@ -139,6 +145,28 @@
           <div>
             <p class="tag">Gerenciamento</p>
             <h2>Presentes cadastrados</h2>
+          </div>
+        </div>
+
+        <div class="gift-manage-toolbar">
+          <div class="form-group toolbar-field">
+            <label for="giftSearchInput">Pesquisar presente</label>
+            <input
+              type="text"
+              id="giftSearchInput"
+              placeholder="Digite o nome do presente"
+            />
+          </div>
+
+          <div class="form-group toolbar-field">
+            <label for="giftFilterSelect">Filtrar</label>
+            <select id="giftFilterSelect">
+              <option value="todos">Todos</option>
+              <option value="com_cotas">Com cotas</option>
+              <option value="unico">Único</option>
+              <option value="disponivel">Disponível</option>
+              <option value="reservado">Reservado</option>
+            </select>
           </div>
         </div>
 
