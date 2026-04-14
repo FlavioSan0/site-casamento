@@ -62,14 +62,17 @@ const editAcompanhantesFields = document.getElementById("editAcompanhantesFields
 const editConfirmacaoMessage = document.getElementById("editConfirmacaoMessage");
 const saveConfirmacaoButton = document.getElementById("saveConfirmacaoButton");
 
-const deleteConfirmacaoModalBackdrop = document.getElementById("deleteConfirmacaoModalBackdrop");
-const deleteConfirmacaoText = document.getElementById("deleteConfirmacaoText");
-const cancelDeleteConfirmacaoButton = document.getElementById("cancelDeleteConfirmacaoButton");
-const confirmDeleteConfirmacaoButton = document.getElementById("confirmDeleteConfirmacaoButton");
+const deleteModalBackdrop = document.getElementById("deleteModalBackdrop");
+const deleteModalTag = document.getElementById("deleteModalTag");
+const deleteModalTitle = document.getElementById("deleteModalTitle");
+const deleteModalText = document.getElementById("deleteModalText");
+const cancelDeleteButton = document.getElementById("cancelDeleteButton");
+const confirmDeleteButton = document.getElementById("confirmDeleteButton");
 
 let currentGifts = [];
 let currentConfirmacoes = [];
-let confirmacaoToDelete = null;
+let currentReservas = [];
+let deleteAction = null;
 
 async function checkSession() {
   const { data, error } = await supabaseClient.auth.getSession();
@@ -349,17 +352,20 @@ function closeEditModal() {
   renderEditAcompanhantesFields([], 0);
 }
 
-function openDeleteConfirmacaoModal(item) {
-  if (!deleteConfirmacaoModalBackdrop) return;
-  confirmacaoToDelete = item;
-  deleteConfirmacaoText.textContent = `A confirmação de "${item.nome}" será removida permanentemente.`;
-  deleteConfirmacaoModalBackdrop.classList.remove("hidden");
+function openDeleteModal(config) {
+  deleteAction = config;
+  deleteModalTag.textContent = config.tag || "Excluir item";
+  deleteModalTitle.textContent = config.title || "Tem certeza que deseja excluir?";
+  deleteModalText.textContent =
+    config.text || "Essa ação removerá o item selecionado permanentemente.";
+  deleteModalBackdrop.classList.remove("hidden");
 }
 
-function closeDeleteConfirmacaoModal() {
-  if (!deleteConfirmacaoModalBackdrop) return;
-  deleteConfirmacaoModalBackdrop.classList.add("hidden");
-  confirmacaoToDelete = null;
+function closeDeleteModal() {
+  deleteModalBackdrop.classList.add("hidden");
+  deleteAction = null;
+  confirmDeleteButton.disabled = false;
+  confirmDeleteButton.textContent = "Sim, excluir";
 }
 
 function applyConfirmacoesFilters() {
@@ -509,41 +515,33 @@ if (confirmacaoModalBackdrop) {
   });
 }
 
-if (cancelDeleteConfirmacaoButton) {
-  cancelDeleteConfirmacaoButton.addEventListener("click", closeDeleteConfirmacaoModal);
+if (cancelDeleteButton) {
+  cancelDeleteButton.addEventListener("click", closeDeleteModal);
 }
 
-if (confirmDeleteConfirmacaoButton) {
-  confirmDeleteConfirmacaoButton.addEventListener("click", async () => {
-    if (!confirmacaoToDelete) return;
+if (confirmDeleteButton) {
+  confirmDeleteButton.addEventListener("click", async () => {
+    if (!deleteAction) return;
 
-    confirmDeleteConfirmacaoButton.disabled = true;
-    confirmDeleteConfirmacaoButton.textContent = "Excluindo...";
+    confirmDeleteButton.disabled = true;
+    confirmDeleteButton.textContent = "Excluindo...";
 
     try {
-      const { error } = await supabaseClient
-        .from("confirmacoes")
-        .delete()
-        .eq("id", confirmacaoToDelete.id);
-
-      if (error) throw error;
-
-      closeDeleteConfirmacaoModal();
-      await loadConfirmacoes();
+      await deleteAction.onConfirm();
+      closeDeleteModal();
     } catch (error) {
-      console.error("Erro ao excluir confirmação:", error);
-      alert("Não foi possível excluir a confirmação.");
-    } finally {
-      confirmDeleteConfirmacaoButton.disabled = false;
-      confirmDeleteConfirmacaoButton.textContent = "Sim, excluir";
+      console.error("Erro na exclusão:", error);
+      alert(error?.message || "Não foi possível concluir a exclusão.");
+      confirmDeleteButton.disabled = false;
+      confirmDeleteButton.textContent = "Sim, excluir";
     }
   });
 }
 
-if (deleteConfirmacaoModalBackdrop) {
-  deleteConfirmacaoModalBackdrop.addEventListener("click", (event) => {
-    if (event.target === deleteConfirmacaoModalBackdrop) {
-      closeDeleteConfirmacaoModal();
+if (deleteModalBackdrop) {
+  deleteModalBackdrop.addEventListener("click", (event) => {
+    if (event.target === deleteModalBackdrop) {
+      closeDeleteModal();
     }
   });
 }
@@ -858,6 +856,35 @@ async function loadPresentes() {
   }
 }
 
+async function loadReservas() {
+  try {
+    const { data, error } = await supabaseClient
+      .from("reservas_presentes")
+      .select(`
+        id,
+        presente_id,
+        reservado_por,
+        created_at,
+        presentes (
+          nome
+        )
+      `)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    currentReservas = data || [];
+    renderReservas(currentReservas);
+  } catch (error) {
+    console.error("Erro ao carregar reservas:", error);
+    reservasTableBody.innerHTML = `
+      <tr>
+        <td colspan="4">Não foi possível carregar as reservas.</td>
+      </tr>
+    `;
+  }
+}
+
 function applyGiftFilters() {
   const searchTerm = (giftSearchInput?.value || "").trim().toLowerCase();
   const filterValue = giftFilterSelect?.value || "todos";
@@ -892,33 +919,6 @@ function applyGiftFilters() {
   });
 
   renderPresentes(filtered);
-}
-
-async function loadReservas() {
-  try {
-    const { data, error } = await supabaseClient
-      .from("reservas_presentes")
-      .select(`
-        id,
-        reservado_por,
-        created_at,
-        presentes (
-          nome
-        )
-      `)
-      .order("created_at", { ascending: false });
-
-    if (error) throw error;
-
-    renderReservas(data || []);
-  } catch (error) {
-    console.error("Erro ao carregar reservas:", error);
-    reservasTableBody.innerHTML = `
-      <tr>
-        <td colspan="3">Não foi possível carregar as reservas.</td>
-      </tr>
-    `;
-  }
 }
 
 function renderConfirmacoes(confirmacoes) {
@@ -981,7 +981,21 @@ function bindConfirmacaoButtons() {
       const id = Number(button.dataset.id);
       const item = currentConfirmacoes.find((confirmacao) => Number(confirmacao.id) === id);
       if (!item) return;
-      openDeleteConfirmacaoModal(item);
+
+      openDeleteModal({
+        tag: "Excluir confirmação",
+        title: "Tem certeza que deseja excluir?",
+        text: `A confirmação de "${item.nome}" será removida permanentemente.`,
+        onConfirm: async () => {
+          const { error } = await supabaseClient
+            .from("confirmacoes")
+            .delete()
+            .eq("id", item.id);
+
+          if (error) throw error;
+          await loadConfirmacoes();
+        }
+      });
     });
   });
 }
@@ -1020,6 +1034,9 @@ function renderPresentes(presentes) {
               <button type="button" class="action-button edit-gift-button" data-id="${item.id}">
                 Editar
               </button>
+              <button type="button" class="action-button action-button-danger delete-gift-button" data-id="${item.id}">
+                Excluir
+              </button>
             </div>
           </td>
         </tr>
@@ -1027,20 +1044,41 @@ function renderPresentes(presentes) {
     })
     .join("");
 
-  bindEditGiftButtons();
+  bindGiftButtonsAdmin();
 }
 
-function bindEditGiftButtons() {
-  const editButtons = document.querySelectorAll(".edit-gift-button");
-
-  editButtons.forEach((button) => {
+function bindGiftButtonsAdmin() {
+  document.querySelectorAll(".edit-gift-button").forEach((button) => {
     button.addEventListener("click", () => {
       const giftId = Number(button.dataset.id);
       const gift = currentGifts.find((item) => Number(item.id) === giftId);
+      if (!gift) return;
+      fillGiftFormForEdit(gift);
+    });
+  });
 
+  document.querySelectorAll(".delete-gift-button").forEach((button) => {
+    button.addEventListener("click", () => {
+      const giftId = Number(button.dataset.id);
+      const gift = currentGifts.find((item) => Number(item.id) === giftId);
       if (!gift) return;
 
-      fillGiftFormForEdit(gift);
+      openDeleteModal({
+        tag: "Excluir presente",
+        title: "Deseja excluir este presente?",
+        text: `O presente "${gift.nome}" será removido do painel e do site principal.`,
+        onConfirm: async () => {
+          const { error } = await supabaseClient
+            .from("presentes")
+            .delete()
+            .eq("id", gift.id);
+
+          if (error) throw error;
+
+          await loadPresentes();
+          await loadReservas();
+        }
+      });
     });
   });
 }
@@ -1049,7 +1087,7 @@ function renderReservas(reservas) {
   if (!reservas.length) {
     reservasTableBody.innerHTML = `
       <tr>
-        <td colspan="3">Nenhuma reserva encontrada.</td>
+        <td colspan="4">Nenhuma reserva encontrada.</td>
       </tr>
     `;
     return;
@@ -1064,10 +1102,48 @@ function renderReservas(reservas) {
           <td>${escapeHtml(nomePresente)}</td>
           <td>${escapeHtml(item.reservado_por || "-")}</td>
           <td>${formatDate(item.created_at)}</td>
+          <td>
+            <div class="action-button-group">
+              <button type="button" class="action-button action-button-danger delete-reserva-button" data-id="${item.id}">
+                Excluir
+              </button>
+            </div>
+          </td>
         </tr>
       `;
     })
     .join("");
+
+  bindReservaButtons();
+}
+
+function bindReservaButtons() {
+  document.querySelectorAll(".delete-reserva-button").forEach((button) => {
+    button.addEventListener("click", () => {
+      const reservaId = Number(button.dataset.id);
+      const reserva = currentReservas.find((item) => Number(item.id) === reservaId);
+      if (!reserva) return;
+
+      const nomePresente = reserva.presentes?.nome || "este presente";
+
+      openDeleteModal({
+        tag: "Excluir reserva",
+        title: "Deseja excluir esta reserva?",
+        text: `A reserva feita por "${reserva.reservado_por}" para "${nomePresente}" será removida.`,
+        onConfirm: async () => {
+          const { error } = await supabaseClient
+            .from("reservas_presentes")
+            .delete()
+            .eq("id", reserva.id);
+
+          if (error) throw error;
+
+          await loadReservas();
+          await loadPresentes();
+        }
+      });
+    });
+  });
 }
 
 function updateConfirmacoesStats(confirmacoes) {

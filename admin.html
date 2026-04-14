@@ -290,11 +290,12 @@
                 <th>Presente</th>
                 <th>Reservado por</th>
                 <th>Data</th>
+                <th>Ação</th>
               </tr>
             </thead>
             <tbody id="reservasTableBody">
               <tr>
-                <td colspan="3">Carregando reservas...</td>
+                <td colspan="4">Carregando reservas...</td>
               </tr>
             </tbody>
           </table>
@@ -370,23 +371,23 @@
     </div>
   </div>
 
-  <div class="modal-backdrop hidden" id="deleteConfirmacaoModalBackdrop">
+  <div class="modal-backdrop hidden" id="deleteModalBackdrop">
     <div class="confirm-delete-card">
       <div class="confirm-delete-icon">!</div>
 
       <div class="confirm-delete-content">
-        <p class="tag">Excluir confirmação</p>
-        <h2>Tem certeza que deseja excluir?</h2>
-        <p id="deleteConfirmacaoText" class="confirm-delete-text">
-          Essa ação removerá a confirmação selecionada permanentemente.
+        <p class="tag" id="deleteModalTag">Excluir item</p>
+        <h2 id="deleteModalTitle">Tem certeza que deseja excluir?</h2>
+        <p id="deleteModalText" class="confirm-delete-text">
+          Essa ação removerá o item selecionado permanentemente.
         </p>
       </div>
 
       <div class="confirm-delete-actions">
-        <button type="button" class="btn btn-outline-dark" id="cancelDeleteConfirmacaoButton">
+        <button type="button" class="btn btn-outline-dark" id="cancelDeleteButton">
           Cancelar
         </button>
-        <button type="button" class="btn btn-primary confirm-delete-button" id="confirmDeleteConfirmacaoButton">
+        <button type="button" class="btn btn-primary confirm-delete-button" id="confirmDeleteButton">
           Sim, excluir
         </button>
       </div>

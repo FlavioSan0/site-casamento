@@ -93,6 +93,22 @@ const rsvpForm = document.getElementById("rsvpForm");
 const formMessage = document.getElementById("formMessage");
 const submitRsvpButton = document.getElementById("submitRsvpButton");
 
+async function getCurrentRoleLabel() {
+  if (!supabaseClient) return "sem cliente";
+
+  try {
+    const { data, error } = await supabaseClient.auth.getSession();
+    if (error) {
+      console.error("Erro ao ler sessão:", error);
+      return "erro ao ler sessão";
+    }
+    return data?.session ? "authenticated" : "anon";
+  } catch (error) {
+    console.error("Erro inesperado ao ler sessão:", error);
+    return "erro inesperado";
+  }
+}
+
 if (rsvpForm) {
   rsvpForm.addEventListener("submit", async function (event) {
     event.preventDefault();
@@ -164,13 +180,20 @@ if (rsvpForm) {
     };
 
     try {
-      const { error } = await supabaseClient
+      const roleLabel = await getCurrentRoleLabel();
+      console.log("Tentando enviar confirmação com role:", roleLabel);
+      console.log("Payload enviado:", payload);
+
+      const { data, error } = await supabaseClient
         .from("confirmacoes")
-        .insert([payload]);
+        .insert([payload])
+        .select();
 
       if (error) {
         throw error;
       }
+
+      console.log("Confirmação salva:", data);
 
       if (formMessage) {
         formMessage.textContent = "Confirmação enviada com sucesso. Obrigado!";
@@ -182,9 +205,17 @@ if (rsvpForm) {
     } catch (error) {
       console.error("Erro ao enviar confirmação:", error);
 
+      const errorText = [
+        "Não foi possível enviar sua confirmação.",
+        error?.message ? `Motivo: ${error.message}` : "",
+        error?.details ? `Detalhes: ${error.details}` : "",
+        error?.hint ? `Dica: ${error.hint}` : ""
+      ]
+        .filter(Boolean)
+        .join(" ");
+
       if (formMessage) {
-        formMessage.textContent =
-          "Não foi possível enviar sua confirmação agora. Tente novamente em instantes.";
+        formMessage.textContent = errorText;
         formMessage.style.color = "#800000";
       }
     } finally {
