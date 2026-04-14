@@ -220,11 +220,7 @@ async function compressGiftImage(file) {
 
   const safeBaseName = originalBaseName || "imagem";
 
-  return new File(
-    [blob],
-    `${safeBaseName}.jpg`,
-    { type: "image/jpeg" }
-  );
+  return new File([blob], `${safeBaseName}.jpg`, { type: "image/jpeg" });
 }
 
 async function uploadGiftImage(file) {
@@ -246,14 +242,9 @@ async function uploadGiftImage(file) {
       contentType: "image/jpeg",
     });
 
-  if (uploadError) {
-    throw uploadError;
-  }
+  if (uploadError) throw uploadError;
 
-  const { data } = supabaseClient.storage
-    .from(GIFT_BUCKET)
-    .getPublicUrl(filePath);
-
+  const { data } = supabaseClient.storage.from(GIFT_BUCKET).getPublicUrl(filePath);
   return data.publicUrl;
 }
 
@@ -365,9 +356,7 @@ function applyConfirmacoesFilters() {
         item.nome || "",
         item.telefone || "",
         formatAcompanhantesNames(item)
-      ]
-        .join(" ")
-        .toLowerCase();
+      ].join(" ").toLowerCase();
 
       return baseText.includes(searchTerm);
     });
@@ -416,11 +405,7 @@ function exportConfirmacoesCsv() {
   ]);
 
   const csvContent = [headers, ...rows]
-    .map((row) =>
-      row
-        .map((value) => `"${String(value).replaceAll('"', '""')}"`)
-        .join(";")
-    )
+    .map((row) => row.map((value) => `"${String(value).replaceAll('"', '""')}"`).join(";"))
     .join("\n");
 
   const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
@@ -501,9 +486,7 @@ if (cancelConfirmacaoModal) {
 
 if (confirmacaoModalBackdrop) {
   confirmacaoModalBackdrop.addEventListener("click", (event) => {
-    if (event.target === confirmacaoModalBackdrop) {
-      closeEditModal();
-    }
+    if (event.target === confirmacaoModalBackdrop) closeEditModal();
   });
 }
 
@@ -517,6 +500,12 @@ if (editConfirmacaoForm) {
     const acompanhantes = Number(editConfirmacaoAcompanhantes.value || 0);
     const presenca = editConfirmacaoPresenca.value;
     const observacoes = editConfirmacaoObservacoes.value.trim();
+
+    if (!id) {
+      editConfirmacaoMessage.textContent = "ID da confirmação não encontrado.";
+      editConfirmacaoMessage.style.color = "#800000";
+      return;
+    }
 
     if (!nome || !presenca) {
       editConfirmacaoMessage.textContent = "Preencha os campos obrigatórios.";
@@ -546,19 +535,26 @@ if (editConfirmacaoForm) {
     editConfirmacaoMessage.textContent = "";
 
     try {
-      const { error } = await supabaseClient
+      const payload = {
+        nome,
+        telefone: telefone || null,
+        acompanhantes,
+        nomes_acompanhantes: acompanhantesNames.length ? acompanhantesNames : null,
+        presenca,
+        observacoes: observacoes || null,
+      };
+
+      const { data, error } = await supabaseClient
         .from("confirmacoes")
-        .update({
-          nome,
-          telefone: telefone || null,
-          acompanhantes,
-          nomes_acompanhantes: acompanhantesNames.length ? acompanhantesNames : null,
-          presenca,
-          observacoes: observacoes || null,
-        })
-        .eq("id", id);
+        .update(payload)
+        .eq("id", id)
+        .select();
 
       if (error) throw error;
+
+      if (!data || data.length === 0) {
+        throw new Error("Nenhum registro foi atualizado. Verifique a policy da tabela confirmacoes.");
+      }
 
       editConfirmacaoMessage.textContent = "Confirmação atualizada com sucesso.";
       editConfirmacaoMessage.style.color = "#355b46";
