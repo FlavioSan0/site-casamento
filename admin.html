@@ -263,11 +263,12 @@
                 <th>Presença</th>
                 <th>Observações</th>
                 <th>Data</th>
+                <th>Ação</th>
               </tr>
             </thead>
             <tbody id="confirmacoesTableBody">
               <tr>
-                <td colspan="7">Carregando confirmações...</td>
+                <td colspan="8">Carregando confirmações...</td>
               </tr>
             </tbody>
           </table>
@@ -301,6 +302,73 @@
       </section>
     </section>
   </main>
+
+  <div class="modal-backdrop hidden" id="confirmacaoModalBackdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <p class="tag">Editar confirmação</p>
+          <h2>Ajustar dados do convidado</h2>
+        </div>
+
+        <button type="button" class="modal-close-button" id="closeConfirmacaoModal">
+          ×
+        </button>
+      </div>
+
+      <form id="editConfirmacaoForm" class="modal-form">
+        <input type="hidden" id="editConfirmacaoId" />
+
+        <div class="modal-grid">
+          <div class="form-group">
+            <label for="editConfirmacaoNome">Nome</label>
+            <input type="text" id="editConfirmacaoNome" required />
+          </div>
+
+          <div class="form-group">
+            <label for="editConfirmacaoTelefone">Telefone</label>
+            <input type="text" id="editConfirmacaoTelefone" />
+          </div>
+
+          <div class="form-group">
+            <label for="editConfirmacaoAcompanhantes">Quantidade de acompanhantes</label>
+            <input type="number" id="editConfirmacaoAcompanhantes" min="0" max="10" />
+          </div>
+
+          <div class="form-group">
+            <label for="editConfirmacaoPresenca">Presença</label>
+            <select id="editConfirmacaoPresenca" required>
+              <option value="">Selecione</option>
+              <option value="Sim, estarei presente">Sim, estarei presente</option>
+              <option value="Não poderei comparecer">Não poderei comparecer</option>
+            </select>
+          </div>
+
+          <div class="form-group form-group-full">
+            <label for="editConfirmacaoObservacoes">Observações</label>
+            <input type="text" id="editConfirmacaoObservacoes" />
+          </div>
+        </div>
+
+        <div id="editAcompanhantesWrapper" class="edit-acompanhantes-wrapper hidden">
+          <p class="edit-acompanhantes-title">Nomes dos acompanhantes</p>
+          <div id="editAcompanhantesFields" class="edit-acompanhantes-fields"></div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="submit" class="btn btn-primary" id="saveConfirmacaoButton">
+            Salvar alterações
+          </button>
+
+          <button type="button" class="btn btn-outline-dark" id="cancelConfirmacaoModal">
+            Cancelar
+          </button>
+        </div>
+
+        <p id="editConfirmacaoMessage" class="message"></p>
+      </form>
+    </div>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="admin.js"></script>

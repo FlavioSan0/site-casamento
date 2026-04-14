@@ -47,6 +47,21 @@ const totalPresentesNao = document.getElementById("totalPresentesNao");
 const totalAcompanhantes = document.getElementById("totalAcompanhantes");
 const totalPresentesReservados = document.getElementById("totalPresentesReservados");
 
+const confirmacaoModalBackdrop = document.getElementById("confirmacaoModalBackdrop");
+const closeConfirmacaoModal = document.getElementById("closeConfirmacaoModal");
+const cancelConfirmacaoModal = document.getElementById("cancelConfirmacaoModal");
+const editConfirmacaoForm = document.getElementById("editConfirmacaoForm");
+const editConfirmacaoId = document.getElementById("editConfirmacaoId");
+const editConfirmacaoNome = document.getElementById("editConfirmacaoNome");
+const editConfirmacaoTelefone = document.getElementById("editConfirmacaoTelefone");
+const editConfirmacaoAcompanhantes = document.getElementById("editConfirmacaoAcompanhantes");
+const editConfirmacaoPresenca = document.getElementById("editConfirmacaoPresenca");
+const editConfirmacaoObservacoes = document.getElementById("editConfirmacaoObservacoes");
+const editAcompanhantesWrapper = document.getElementById("editAcompanhantesWrapper");
+const editAcompanhantesFields = document.getElementById("editAcompanhantesFields");
+const editConfirmacaoMessage = document.getElementById("editConfirmacaoMessage");
+const saveConfirmacaoButton = document.getElementById("saveConfirmacaoButton");
+
 let currentGifts = [];
 let currentConfirmacoes = [];
 
@@ -280,6 +295,63 @@ function formatAcompanhantesNames(item) {
   return names.join(", ");
 }
 
+function renderEditAcompanhantesFields(names = [], quantidade = 0) {
+  if (!editAcompanhantesWrapper || !editAcompanhantesFields) return;
+
+  const total = Number(quantidade || 0);
+
+  if (!total || total <= 0) {
+    editAcompanhantesWrapper.classList.add("hidden");
+    editAcompanhantesFields.innerHTML = "";
+    return;
+  }
+
+  editAcompanhantesWrapper.classList.remove("hidden");
+
+  editAcompanhantesFields.innerHTML = Array.from({ length: total }, (_, index) => {
+    const number = index + 1;
+    const value = names[index] || "";
+
+    return `
+      <div class="form-group">
+        <label for="edit_acompanhante_nome_${number}">Nome do acompanhante ${number}</label>
+        <input
+          type="text"
+          id="edit_acompanhante_nome_${number}"
+          class="edit-acompanhante-nome-input"
+          value="${escapeHtml(value)}"
+          placeholder="Digite o nome completo"
+        />
+      </div>
+    `;
+  }).join("");
+}
+
+function openConfirmacaoModal(item) {
+  if (!confirmacaoModalBackdrop) return;
+
+  const names = getAcompanhantesNames(item);
+
+  editConfirmacaoId.value = item.id;
+  editConfirmacaoNome.value = item.nome || "";
+  editConfirmacaoTelefone.value = item.telefone || "";
+  editConfirmacaoAcompanhantes.value = Number(item.acompanhantes || 0);
+  editConfirmacaoPresenca.value = item.presenca || "";
+  editConfirmacaoObservacoes.value = item.observacoes || "";
+  editConfirmacaoMessage.textContent = "";
+
+  renderEditAcompanhantesFields(names, Number(item.acompanhantes || 0));
+  confirmacaoModalBackdrop.classList.remove("hidden");
+}
+
+function closeEditModal() {
+  if (!confirmacaoModalBackdrop) return;
+  confirmacaoModalBackdrop.classList.add("hidden");
+  editConfirmacaoForm.reset();
+  editConfirmacaoMessage.textContent = "";
+  renderEditAcompanhantesFields([], 0);
+}
+
 function applyConfirmacoesFilters() {
   const searchTerm = (confirmacoesSearchInput?.value || "").trim().toLowerCase();
   const presencaValue = confirmacoesPresencaFilter?.value || "todos";
@@ -408,6 +480,104 @@ if (confirmacoesAcompanhantesFilter) {
 
 if (exportConfirmacoesButton) {
   exportConfirmacoesButton.addEventListener("click", exportConfirmacoesCsv);
+}
+
+if (editConfirmacaoAcompanhantes) {
+  editConfirmacaoAcompanhantes.addEventListener("input", () => {
+    const total = Number(editConfirmacaoAcompanhantes.value || 0);
+    const currentNames = Array.from(document.querySelectorAll(".edit-acompanhante-nome-input"))
+      .map((input) => input.value.trim());
+    renderEditAcompanhantesFields(currentNames, total);
+  });
+}
+
+if (closeConfirmacaoModal) {
+  closeConfirmacaoModal.addEventListener("click", closeEditModal);
+}
+
+if (cancelConfirmacaoModal) {
+  cancelConfirmacaoModal.addEventListener("click", closeEditModal);
+}
+
+if (confirmacaoModalBackdrop) {
+  confirmacaoModalBackdrop.addEventListener("click", (event) => {
+    if (event.target === confirmacaoModalBackdrop) {
+      closeEditModal();
+    }
+  });
+}
+
+if (editConfirmacaoForm) {
+  editConfirmacaoForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const id = Number(editConfirmacaoId.value);
+    const nome = editConfirmacaoNome.value.trim();
+    const telefone = editConfirmacaoTelefone.value.trim();
+    const acompanhantes = Number(editConfirmacaoAcompanhantes.value || 0);
+    const presenca = editConfirmacaoPresenca.value;
+    const observacoes = editConfirmacaoObservacoes.value.trim();
+
+    if (!nome || !presenca) {
+      editConfirmacaoMessage.textContent = "Preencha os campos obrigatórios.";
+      editConfirmacaoMessage.style.color = "#800000";
+      return;
+    }
+
+    if (Number.isNaN(acompanhantes) || acompanhantes < 0) {
+      editConfirmacaoMessage.textContent = "Informe uma quantidade válida de acompanhantes.";
+      editConfirmacaoMessage.style.color = "#800000";
+      return;
+    }
+
+    const acompanhantesNames = Array.from(document.querySelectorAll(".edit-acompanhante-nome-input"))
+      .map((input) => input.value.trim())
+      .filter(Boolean);
+
+    if (acompanhantes > 0 && acompanhantesNames.length !== acompanhantes) {
+      editConfirmacaoMessage.textContent =
+        "Preencha o nome de todos os acompanhantes para continuar.";
+      editConfirmacaoMessage.style.color = "#800000";
+      return;
+    }
+
+    saveConfirmacaoButton.disabled = true;
+    saveConfirmacaoButton.textContent = "Salvando...";
+    editConfirmacaoMessage.textContent = "";
+
+    try {
+      const { error } = await supabaseClient
+        .from("confirmacoes")
+        .update({
+          nome,
+          telefone: telefone || null,
+          acompanhantes,
+          nomes_acompanhantes: acompanhantesNames.length ? acompanhantesNames : null,
+          presenca,
+          observacoes: observacoes || null,
+        })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      editConfirmacaoMessage.textContent = "Confirmação atualizada com sucesso.";
+      editConfirmacaoMessage.style.color = "#355b46";
+
+      await loadConfirmacoes();
+
+      setTimeout(() => {
+        closeEditModal();
+      }, 500);
+    } catch (error) {
+      console.error("Erro ao atualizar confirmação:", error);
+      editConfirmacaoMessage.textContent =
+        error?.message || "Não foi possível atualizar a confirmação.";
+      editConfirmacaoMessage.style.color = "#800000";
+    } finally {
+      saveConfirmacaoButton.disabled = false;
+      saveConfirmacaoButton.textContent = "Salvar alterações";
+    }
+  });
 }
 
 if (loginForm) {
@@ -606,7 +776,7 @@ async function loadConfirmacoes() {
     console.error("Erro ao carregar confirmações:", error);
     confirmacoesTableBody.innerHTML = `
       <tr>
-        <td colspan="7">Não foi possível carregar as confirmações.</td>
+        <td colspan="8">Não foi possível carregar as confirmações.</td>
       </tr>
     `;
   }
@@ -701,7 +871,7 @@ function renderConfirmacoes(confirmacoes) {
   if (!confirmacoes.length) {
     confirmacoesTableBody.innerHTML = `
       <tr>
-        <td colspan="7">Nenhuma confirmação encontrada.</td>
+        <td colspan="8">Nenhuma confirmação encontrada.</td>
       </tr>
     `;
     return;
@@ -724,10 +894,62 @@ function renderConfirmacoes(confirmacoes) {
           </td>
           <td>${escapeHtml(item.observacoes || "-")}</td>
           <td>${formatDate(item.created_at)}</td>
+          <td>
+            <div class="action-button-group">
+              <button type="button" class="action-button edit-confirmacao-button" data-id="${item.id}">
+                Editar
+              </button>
+              <button type="button" class="action-button action-button-danger delete-confirmacao-button" data-id="${item.id}">
+                Excluir
+              </button>
+            </div>
+          </td>
         </tr>
       `;
     })
     .join("");
+
+  bindConfirmacaoButtons();
+}
+
+function bindConfirmacaoButtons() {
+  document.querySelectorAll(".edit-confirmacao-button").forEach((button) => {
+    button.addEventListener("click", () => {
+      const id = Number(button.dataset.id);
+      const item = currentConfirmacoes.find((confirmacao) => Number(confirmacao.id) === id);
+      if (!item) return;
+      openConfirmacaoModal(item);
+    });
+  });
+
+  document.querySelectorAll(".delete-confirmacao-button").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const id = Number(button.dataset.id);
+      const item = currentConfirmacoes.find((confirmacao) => Number(confirmacao.id) === id);
+
+      if (!item) return;
+
+      const confirmed = window.confirm(
+        `Deseja realmente excluir a confirmação de "${item.nome}"?`
+      );
+
+      if (!confirmed) return;
+
+      try {
+        const { error } = await supabaseClient
+          .from("confirmacoes")
+          .delete()
+          .eq("id", id);
+
+        if (error) throw error;
+
+        await loadConfirmacoes();
+      } catch (error) {
+        console.error("Erro ao excluir confirmação:", error);
+        alert("Não foi possível excluir a confirmação.");
+      }
+    });
+  });
 }
 
 function renderPresentes(presentes) {

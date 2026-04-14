@@ -73,7 +73,8 @@ select {
 
 .login-card h1,
 .dashboard-header h1,
-.block-header h2 {
+.block-header h2,
+.modal-header h2 {
   color: var(--navy);
   line-height: 1.15;
 }
@@ -316,7 +317,7 @@ select {
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 1100px;
+  min-width: 1180px;
 }
 
 thead th {
@@ -408,6 +409,93 @@ tbody td {
   background: rgba(8, 38, 94, 0.05);
 }
 
+.action-button-danger {
+  border-color: rgba(128, 0, 0, 0.18);
+  color: var(--wine);
+}
+
+.action-button-danger:hover {
+  background: rgba(128, 0, 0, 0.06);
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 38, 94, 0.35);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 999;
+}
+
+.modal-card {
+  width: min(720px, 100%);
+  max-height: 92vh;
+  overflow-y: auto;
+  background: var(--white);
+  border-radius: 24px;
+  box-shadow: 0 18px 40px rgba(8, 38, 94, 0.18);
+  padding: 24px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.modal-close-button {
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(8, 38, 94, 0.14);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--navy);
+  font-size: 1.4rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.modal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.modal-form .form-group {
+  margin-bottom: 0;
+}
+
+.edit-acompanhantes-wrapper {
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: #faf8f8;
+}
+
+.edit-acompanhantes-title {
+  margin-bottom: 14px;
+  font-weight: 700;
+  color: var(--wine);
+}
+
+.edit-acompanhantes-fields {
+  display: grid;
+  gap: 14px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
 @media (max-width: 1180px) {
   .stats-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -417,7 +505,8 @@ tbody td {
 @media (max-width: 860px) {
   .gift-form-grid,
   .gift-manage-toolbar,
-  .confirmacoes-toolbar {
+  .confirmacoes-toolbar,
+  .modal-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -425,7 +514,8 @@ tbody td {
 @media (max-width: 720px) {
   .login-card,
   .panel-block,
-  .stat-card {
+  .stat-card,
+  .modal-card {
     border-radius: 18px;
   }
 
@@ -454,7 +544,11 @@ tbody td {
   }
 
   table {
-    min-width: 900px;
+    min-width: 980px;
+  }
+
+  .modal-card {
+    padding: 18px;
   }
 }
 
@@ -472,7 +566,8 @@ tbody td {
   }
 
   .dashboard-header,
-  .confirmations-header {
+  .confirmations-header,
+  .modal-header {
     align-items: stretch;
   }
 
@@ -482,7 +577,8 @@ tbody td {
   }
 
   .dashboard-actions .btn,
-  .confirmations-header .btn {
+  .confirmations-header .btn,
+  .modal-actions .btn {
     width: 100%;
     text-align: center;
   }
@@ -492,7 +588,8 @@ tbody td {
     padding: 16px;
   }
 
-  .gift-form-actions {
+  .gift-form-actions,
+  .modal-actions {
     flex-direction: column;
   }
 
