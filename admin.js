@@ -62,8 +62,14 @@ const editAcompanhantesFields = document.getElementById("editAcompanhantesFields
 const editConfirmacaoMessage = document.getElementById("editConfirmacaoMessage");
 const saveConfirmacaoButton = document.getElementById("saveConfirmacaoButton");
 
+const deleteConfirmacaoModalBackdrop = document.getElementById("deleteConfirmacaoModalBackdrop");
+const deleteConfirmacaoText = document.getElementById("deleteConfirmacaoText");
+const cancelDeleteConfirmacaoButton = document.getElementById("cancelDeleteConfirmacaoButton");
+const confirmDeleteConfirmacaoButton = document.getElementById("confirmDeleteConfirmacaoButton");
+
 let currentGifts = [];
 let currentConfirmacoes = [];
+let confirmacaoToDelete = null;
 
 async function checkSession() {
   const { data, error } = await supabaseClient.auth.getSession();
@@ -343,6 +349,19 @@ function closeEditModal() {
   renderEditAcompanhantesFields([], 0);
 }
 
+function openDeleteConfirmacaoModal(item) {
+  if (!deleteConfirmacaoModalBackdrop) return;
+  confirmacaoToDelete = item;
+  deleteConfirmacaoText.textContent = `A confirmação de "${item.nome}" será removida permanentemente.`;
+  deleteConfirmacaoModalBackdrop.classList.remove("hidden");
+}
+
+function closeDeleteConfirmacaoModal() {
+  if (!deleteConfirmacaoModalBackdrop) return;
+  deleteConfirmacaoModalBackdrop.classList.add("hidden");
+  confirmacaoToDelete = null;
+}
+
 function applyConfirmacoesFilters() {
   const searchTerm = (confirmacoesSearchInput?.value || "").trim().toLowerCase();
   const presencaValue = confirmacoesPresencaFilter?.value || "todos";
@@ -487,6 +506,45 @@ if (cancelConfirmacaoModal) {
 if (confirmacaoModalBackdrop) {
   confirmacaoModalBackdrop.addEventListener("click", (event) => {
     if (event.target === confirmacaoModalBackdrop) closeEditModal();
+  });
+}
+
+if (cancelDeleteConfirmacaoButton) {
+  cancelDeleteConfirmacaoButton.addEventListener("click", closeDeleteConfirmacaoModal);
+}
+
+if (confirmDeleteConfirmacaoButton) {
+  confirmDeleteConfirmacaoButton.addEventListener("click", async () => {
+    if (!confirmacaoToDelete) return;
+
+    confirmDeleteConfirmacaoButton.disabled = true;
+    confirmDeleteConfirmacaoButton.textContent = "Excluindo...";
+
+    try {
+      const { error } = await supabaseClient
+        .from("confirmacoes")
+        .delete()
+        .eq("id", confirmacaoToDelete.id);
+
+      if (error) throw error;
+
+      closeDeleteConfirmacaoModal();
+      await loadConfirmacoes();
+    } catch (error) {
+      console.error("Erro ao excluir confirmação:", error);
+      alert("Não foi possível excluir a confirmação.");
+    } finally {
+      confirmDeleteConfirmacaoButton.disabled = false;
+      confirmDeleteConfirmacaoButton.textContent = "Sim, excluir";
+    }
+  });
+}
+
+if (deleteConfirmacaoModalBackdrop) {
+  deleteConfirmacaoModalBackdrop.addEventListener("click", (event) => {
+    if (event.target === deleteConfirmacaoModalBackdrop) {
+      closeDeleteConfirmacaoModal();
+    }
   });
 }
 
@@ -919,31 +977,11 @@ function bindConfirmacaoButtons() {
   });
 
   document.querySelectorAll(".delete-confirmacao-button").forEach((button) => {
-    button.addEventListener("click", async () => {
+    button.addEventListener("click", () => {
       const id = Number(button.dataset.id);
       const item = currentConfirmacoes.find((confirmacao) => Number(confirmacao.id) === id);
-
       if (!item) return;
-
-      const confirmed = window.confirm(
-        `Deseja realmente excluir a confirmação de "${item.nome}"?`
-      );
-
-      if (!confirmed) return;
-
-      try {
-        const { error } = await supabaseClient
-          .from("confirmacoes")
-          .delete()
-          .eq("id", id);
-
-        if (error) throw error;
-
-        await loadConfirmacoes();
-      } catch (error) {
-        console.error("Erro ao excluir confirmação:", error);
-        alert("Não foi possível excluir a confirmação.");
-      }
+      openDeleteConfirmacaoModal(item);
     });
   });
 }
