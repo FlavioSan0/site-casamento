@@ -133,21 +133,96 @@ function previewGiftImageFromFile(file) {
   previewGiftImageFromUrl(tempUrl);
 }
 
+function loadImageElement(file) {
+  return new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const img = new Image();
+
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(img);
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("Não foi possível ler a imagem enviada."));
+    };
+
+    img.src = objectUrl;
+  });
+}
+
+function canvasToBlob(canvas, type, quality) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        reject(new Error("Não foi possível processar a imagem."));
+        return;
+      }
+      resolve(blob);
+    }, type, quality);
+  });
+}
+
+async function compressGiftImage(file) {
+  const image = await loadImageElement(file);
+
+  const maxWidth = 1400;
+  const maxHeight = 1400;
+
+  let { width, height } = image;
+
+  const scale = Math.min(maxWidth / width, maxHeight / height, 1);
+  const targetWidth = Math.round(width * scale);
+  const targetHeight = Math.round(height * scale);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+
+  const ctx = canvas.getContext("2d");
+
+  if (!ctx) {
+    throw new Error("Não foi possível preparar a compressão da imagem.");
+  }
+
+  ctx.drawImage(image, 0, 0, targetWidth, targetHeight);
+
+  const blob = await canvasToBlob(canvas, "image/jpeg", 0.82);
+
+  const originalBaseName = (file.name || "imagem")
+    .replace(/\.[^.]+$/, "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9-]/g, "-")
+    .toLowerCase();
+
+  const safeBaseName = originalBaseName || "imagem";
+
+  return new File(
+    [blob],
+    `${safeBaseName}.jpg`,
+    { type: "image/jpeg" }
+  );
+}
+
 async function uploadGiftImage(file) {
-  const extension = file.name.split(".").pop()?.toLowerCase() || "jpg";
-  const safeName = file.name
+  const compressedFile = await compressGiftImage(file);
+
+  const safeName = compressedFile.name
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-zA-Z0-9.-]/g, "-")
     .toLowerCase();
 
-  const filePath = `${Date.now()}-${safeName || `imagem.${extension}`}`;
+  const filePath = `${Date.now()}-${safeName}`;
 
   const { error: uploadError } = await supabaseClient.storage
     .from(GIFT_BUCKET)
-    .upload(filePath, file, {
+    .upload(filePath, compressedFile, {
       cacheControl: "3600",
       upsert: false,
+      contentType: "image/jpeg",
     });
 
   if (uploadError) {
@@ -325,7 +400,7 @@ if (giftForm) {
       let imagemUrl = giftImagemAtual.value || null;
 
       if (selectedFile) {
-        giftFormMessage.textContent = "Enviando imagem...";
+        giftFormMessage.textContent = "Processando e enviando imagem...";
         giftFormMessage.style.color = "#08265e";
         imagemUrl = await uploadGiftImage(selectedFile);
       }
