@@ -6,14 +6,11 @@ let supabaseClient = null;
 if (!window.supabase) {
   console.error("Supabase JS não foi carregado. Verifique o script CDN no index.html.");
 } else {
-  console.log("Supabase JS carregado com sucesso.");
-
   try {
     supabaseClient = window.supabase.createClient(
       SUPABASE_URL,
       SUPABASE_PUBLISHABLE_KEY
     );
-    console.log("Cliente Supabase criado com sucesso.");
   } catch (error) {
     console.error("Erro ao criar cliente Supabase:", error);
   }
@@ -63,7 +60,6 @@ if (rsvpForm) {
     event.preventDefault();
 
     if (!supabaseClient) {
-      console.error("Supabase client está nulo.");
       if (formMessage) {
         formMessage.textContent =
           "Não foi possível conectar ao banco de dados no momento.";
@@ -113,19 +109,14 @@ if (rsvpForm) {
       observacoes: observacoes || null,
     };
 
-    console.log("Enviando confirmação:", payload);
-
     try {
-      const { data, error } = await supabaseClient
+      const { error } = await supabaseClient
         .from("confirmacoes")
         .insert([payload]);
 
       if (error) {
-        console.error("Erro retornado pelo Supabase:", error);
         throw error;
       }
-
-      console.log("Confirmação enviada com sucesso:", data);
 
       if (formMessage) {
         formMessage.textContent = "Confirmação enviada com sucesso. Obrigado!";
@@ -193,7 +184,21 @@ function createGiftCard(gift) {
   const esgotado = usaCotas ? quantidadeDisponivel <= 0 : gift.status === "reservado";
 
   return `
-    <div class="gift-card" data-gift-id="${gift.id}">
+    <div class="gift-card" data-gift-id="${gift.id}" data-uses-cotas="${usaCotas}">
+      ${
+        gift.imagem_url
+          ? `
+            <div class="gift-image-wrapper">
+              <img
+                src="${escapeHtml(gift.imagem_url)}"
+                alt="${escapeHtml(gift.nome || "Presente")}"
+                class="gift-image"
+              />
+            </div>
+          `
+          : ""
+      }
+
       <div class="gift-top">
         <div>
           <h4>${escapeHtml(gift.nome)}</h4>
@@ -253,6 +258,7 @@ function bindGiftButtons() {
       const card = button.closest(".gift-card");
       const input = card?.querySelector(".gift-name-input");
       const feedback = document.getElementById(`gift-feedback-${giftId}`);
+      const usaCotas = card?.dataset?.usesCotas === "true";
 
       const reservadoPor = input?.value.trim() || "";
 
@@ -293,7 +299,7 @@ function bindGiftButtons() {
         }
 
         button.disabled = false;
-        button.textContent = "Reservar";
+        button.textContent = usaCotas ? "Reservar 1 cota" : "Reservar presente";
       }
     });
   });

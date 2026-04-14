@@ -118,6 +118,13 @@ select {
   border-color: var(--wine);
 }
 
+.field-hint {
+  display: block;
+  margin-top: 8px;
+  color: var(--text-soft);
+  font-size: 0.88rem;
+}
+
 .btn {
   border: none;
   cursor: pointer;
@@ -154,6 +161,7 @@ select {
 .message {
   margin-top: 14px;
   font-weight: 700;
+  word-break: break-word;
 }
 
 .dashboard-header {
@@ -241,6 +249,34 @@ select {
   margin: 0;
 }
 
+.gift-image-preview {
+  margin-top: 6px;
+  margin-bottom: 18px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: #faf8f8;
+}
+
+.preview-label {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--wine);
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.gift-image-preview img {
+  width: 100%;
+  max-width: 240px;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 16px;
+  border: 1px solid #ece6e6;
+  background: #f6f3f3;
+}
+
 .gift-form-actions {
   margin-top: 6px;
   display: flex;
@@ -267,7 +303,7 @@ select {
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 760px;
+  min-width: 900px;
 }
 
 thead th {
@@ -284,6 +320,30 @@ tbody td {
   border-bottom: 1px solid #f0ebeb;
   color: var(--text-soft);
   vertical-align: top;
+}
+
+.admin-gift-thumb {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 1px solid #ece6e6;
+  background: #f6f3f3;
+}
+
+.admin-gift-thumb-placeholder {
+  width: 72px;
+  height: 72px;
+  border-radius: 14px;
+  border: 1px dashed #d9cfcf;
+  background: #faf8f8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  color: var(--text-soft);
+  text-align: center;
+  padding: 6px;
 }
 
 .status-badge {
@@ -378,7 +438,7 @@ tbody td {
   }
 
   table {
-    min-width: 680px;
+    min-width: 760px;
   }
 }
 
@@ -420,5 +480,9 @@ tbody td {
 
   .gift-form-actions .btn {
     width: 100%;
+  }
+
+  .gift-image-preview img {
+    max-width: 100%;
   }
 }

@@ -1,5 +1,6 @@
 const SUPABASE_URL = "https://zmomnbtqxttlgpxdvmzr.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_doB-Z-J7ingNc--jiPHSyQ__0HY95qI";
+const GIFT_BUCKET = "presentes-casamento";
 
 const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
@@ -22,6 +23,13 @@ const giftUsaCotas = document.getElementById("giftUsaCotas");
 const giftQuantidadeWrapper = document.getElementById("giftQuantidadeWrapper");
 const giftQuantidadeTotal = document.getElementById("giftQuantidadeTotal");
 const giftValorInput = document.getElementById("giftValor");
+const giftImagemAtual = document.getElementById("giftImagemAtual");
+const giftImagemFile = document.getElementById("giftImagemFile");
+const giftImagePreviewWrapper = document.getElementById("giftImagePreviewWrapper");
+const giftImagePreview = document.getElementById("giftImagePreview");
+
+const giftSearchInput = document.getElementById("giftSearchInput");
+const giftFilterSelect = document.getElementById("giftFilterSelect");
 
 const confirmacoesTableBody = document.getElementById("confirmacoesTableBody");
 const presentesManageTableBody = document.getElementById("presentesManageTableBody");
@@ -96,37 +104,99 @@ function formatGiftValue(value) {
 
 function normalizeGiftValueForSave(value) {
   if (!value) return null;
-
   const formatted = formatGiftValue(value);
-
   return formatted || null;
+}
+
+function previewGiftImageFromUrl(url) {
+  if (!url) {
+    giftImagePreviewWrapper.classList.add("hidden");
+    giftImagePreview.removeAttribute("src");
+    return;
+  }
+
+  giftImagePreviewWrapper.classList.remove("hidden");
+  giftImagePreview.src = url;
+}
+
+function previewGiftImageFromFile(file) {
+  if (!file) {
+    if (giftImagemAtual.value) {
+      previewGiftImageFromUrl(giftImagemAtual.value);
+    } else {
+      previewGiftImageFromUrl("");
+    }
+    return;
+  }
+
+  const tempUrl = URL.createObjectURL(file);
+  previewGiftImageFromUrl(tempUrl);
+}
+
+async function uploadGiftImage(file) {
+  const extension = file.name.split(".").pop()?.toLowerCase() || "jpg";
+  const safeName = file.name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9.-]/g, "-")
+    .toLowerCase();
+
+  const filePath = `${Date.now()}-${safeName || `imagem.${extension}`}`;
+
+  const { error: uploadError } = await supabaseClient.storage
+    .from(GIFT_BUCKET)
+    .upload(filePath, file, {
+      cacheControl: "3600",
+      upsert: false,
+    });
+
+  if (uploadError) {
+    throw uploadError;
+  }
+
+  const { data } = supabaseClient.storage
+    .from(GIFT_BUCKET)
+    .getPublicUrl(filePath);
+
+  return data.publicUrl;
 }
 
 function resetGiftForm() {
   giftForm.reset();
   giftEditId.value = "";
+  giftImagemAtual.value = "";
   giftSubmitButton.textContent = "Cadastrar presente";
   giftCancelEditButton.classList.add("hidden");
   giftFormMessage.textContent = "";
   updateGiftQuantityVisibility();
+  previewGiftImageFromUrl("");
 }
 
 function fillGiftFormForEdit(gift) {
   document.getElementById("giftNome").value = gift.nome || "";
   document.getElementById("giftValor").value = gift.valor || "";
   document.getElementById("giftDescricao").value = gift.descricao || "";
+  giftImagemAtual.value = gift.imagem_url || "";
   giftUsaCotas.checked = !!gift.usa_cotas;
   giftQuantidadeTotal.value = gift.quantidade_total || 1;
   giftEditId.value = gift.id;
   giftSubmitButton.textContent = "Salvar alterações";
   giftCancelEditButton.classList.remove("hidden");
   updateGiftQuantityVisibility();
+  previewGiftImageFromUrl(gift.imagem_url || "");
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 if (giftValorInput) {
   giftValorInput.addEventListener("blur", () => {
     giftValorInput.value = formatGiftValue(giftValorInput.value);
+  });
+}
+
+if (giftImagemFile) {
+  giftImagemFile.addEventListener("change", (event) => {
+    const file = event.target.files?.[0];
+    previewGiftImageFromFile(file || null);
   });
 }
 
@@ -137,6 +207,14 @@ if (giftUsaCotas) {
 
 if (giftCancelEditButton) {
   giftCancelEditButton.addEventListener("click", resetGiftForm);
+}
+
+if (giftSearchInput) {
+  giftSearchInput.addEventListener("input", applyGiftFilters);
+}
+
+if (giftFilterSelect) {
+  giftFilterSelect.addEventListener("change", applyGiftFilters);
 }
 
 if (loginForm) {
@@ -197,6 +275,7 @@ if (giftForm) {
     const descricao = document.getElementById("giftDescricao").value.trim();
     const usaCotas = !!giftUsaCotas.checked;
     const quantidadeTotal = usaCotas ? Number(giftQuantidadeTotal.value) : 1;
+    const selectedFile = giftImagemFile?.files?.[0] || null;
 
     if (!nome) {
       giftFormMessage.textContent = "Informe o nome do presente.";
@@ -206,6 +285,15 @@ if (giftForm) {
 
     if (usaCotas && (!quantidadeTotal || Number.isNaN(quantidadeTotal) || quantidadeTotal < 1)) {
       giftFormMessage.textContent = "Informe uma quantidade total válida para as cotas.";
+      giftFormMessage.style.color = "#800000";
+      return;
+    }
+
+    if (
+      selectedFile &&
+      !["image/png", "image/jpeg", "image/jpg", "image/webp"].includes(selectedFile.type)
+    ) {
+      giftFormMessage.textContent = "Envie uma imagem PNG, JPG, JPEG ou WEBP.";
       giftFormMessage.style.color = "#800000";
       return;
     }
@@ -234,6 +322,14 @@ if (giftForm) {
     giftFormMessage.textContent = "";
 
     try {
+      let imagemUrl = giftImagemAtual.value || null;
+
+      if (selectedFile) {
+        giftFormMessage.textContent = "Enviando imagem...";
+        giftFormMessage.style.color = "#08265e";
+        imagemUrl = await uploadGiftImage(selectedFile);
+      }
+
       if (editId) {
         const quantidadeReservada = usaCotas
           ? quantidadeReservadaAtual
@@ -249,6 +345,7 @@ if (giftForm) {
             nome,
             valor,
             descricao: descricao || null,
+            imagem_url: imagemUrl,
             usa_cotas: usaCotas,
             quantidade_total: quantidadeTotal,
             quantidade_reservada: quantidadeReservada,
@@ -265,6 +362,7 @@ if (giftForm) {
             nome,
             valor,
             descricao: descricao || null,
+            imagem_url: imagemUrl,
             usa_cotas: usaCotas,
             quantidade_total: quantidadeTotal,
             quantidade_reservada: 0,
@@ -330,16 +428,52 @@ async function loadPresentes() {
     if (error) throw error;
 
     currentGifts = data || [];
-    renderPresentes(currentGifts);
+    applyGiftFilters();
     updatePresentesStats(currentGifts);
   } catch (error) {
     console.error("Erro ao carregar presentes:", error);
     presentesManageTableBody.innerHTML = `
       <tr>
-        <td colspan="7">Não foi possível carregar os presentes.</td>
+        <td colspan="8">Não foi possível carregar os presentes.</td>
       </tr>
     `;
   }
+}
+
+function applyGiftFilters() {
+  const searchTerm = (giftSearchInput?.value || "").trim().toLowerCase();
+  const filterValue = giftFilterSelect?.value || "todos";
+
+  let filtered = [...currentGifts];
+
+  if (searchTerm) {
+    filtered = filtered.filter((item) =>
+      String(item.nome || "").toLowerCase().includes(searchTerm)
+    );
+  }
+
+  filtered = filtered.filter((item) => {
+    const total = Number(item.quantidade_total || 0);
+    const reservadas = Number(item.quantidade_reservada || 0);
+    const disponiveis = Math.max(total - reservadas, 0);
+    const reservado = item.usa_cotas ? disponiveis <= 0 : item.status === "reservado";
+    const disponivel = !reservado;
+
+    switch (filterValue) {
+      case "com_cotas":
+        return !!item.usa_cotas;
+      case "unico":
+        return !item.usa_cotas;
+      case "disponivel":
+        return disponivel;
+      case "reservado":
+        return reservado;
+      default:
+        return true;
+    }
+  });
+
+  renderPresentes(filtered);
 }
 
 async function loadReservas() {
@@ -405,7 +539,7 @@ function renderPresentes(presentes) {
   if (!presentes.length) {
     presentesManageTableBody.innerHTML = `
       <tr>
-        <td colspan="7">Nenhum presente encontrado.</td>
+        <td colspan="8">Nenhum presente encontrado para esse filtro.</td>
       </tr>
     `;
     return;
@@ -417,9 +551,13 @@ function renderPresentes(presentes) {
       const reservadas = Number(item.quantidade_reservada || 0);
       const disponiveis = Math.max(total - reservadas, 0);
       const tipo = item.usa_cotas ? "Com cotas" : "Único";
+      const imagem = item.imagem_url
+        ? `<img src="${escapeHtml(item.imagem_url)}" alt="${escapeHtml(item.nome || "Presente")}" class="admin-gift-thumb" />`
+        : `<div class="admin-gift-thumb-placeholder">Sem foto</div>`;
 
       return `
         <tr>
+          <td>${imagem}</td>
           <td>${escapeHtml(item.nome || "")}</td>
           <td>${escapeHtml(item.valor || "-")}</td>
           <td>${tipo}</td>

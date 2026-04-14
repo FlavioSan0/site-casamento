@@ -692,10 +692,27 @@ textarea {
 .gift-card {
   min-width: 0;
   height: 100%;
-  padding: 22px;
+  padding: 20px;
   border-radius: 22px;
   display: flex;
   flex-direction: column;
+}
+
+.gift-image-wrapper {
+  width: 100%;
+  margin-bottom: 14px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #f6f2f2;
+  aspect-ratio: 1 / 1;
+  border: 1px solid #ece3e3;
+}
+
+.gift-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 
 .gift-top {
@@ -714,7 +731,7 @@ textarea {
 }
 
 .gift-top h4 {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   line-height: 1.25;
   margin-bottom: 4px;
   word-break: break-word;
@@ -785,7 +802,7 @@ textarea {
 .gift-card .btn,
 .gift-card .btn-disabled {
   width: 100%;
-  min-height: 58px;
+  min-height: 56px;
   padding: 14px 16px;
   border-radius: 18px;
 }
@@ -974,10 +991,6 @@ textarea {
   .gift-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 16px;
-  }
-
-  .gift-card {
-    padding: 20px;
   }
 }
 
@@ -1275,11 +1288,15 @@ textarea {
   }
 
   .gift-top h4 {
-    font-size: 1.12rem;
+    font-size: 1.08rem;
   }
 
   .gift-description {
     font-size: 0.9rem;
+  }
+
+  .gift-image-wrapper {
+    border-radius: 16px;
   }
 
   .gift-reserver input {
@@ -1558,16 +1575,21 @@ textarea {
   }
 
   .gift-card {
-    padding: 16px;
+    padding: 14px;
   }
 
   .gift-top h4 {
-    font-size: 1rem;
+    font-size: 0.98rem;
   }
 
   .gift-description {
-    font-size: 0.86rem;
+    font-size: 0.84rem;
     line-height: 1.45;
+  }
+
+  .gift-image-wrapper {
+    margin-bottom: 12px;
+    border-radius: 14px;
   }
 
   .gift-status {
@@ -1578,7 +1600,7 @@ textarea {
   .gift-reserver .btn,
   .gift-card .btn,
   .gift-card .btn-disabled {
-    min-height: 54px;
+    min-height: 52px;
     border-radius: 16px;
   }
 

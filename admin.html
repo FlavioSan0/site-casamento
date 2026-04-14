@@ -96,6 +96,7 @@
 
         <form id="giftForm" class="gift-form">
           <input type="hidden" id="giftEditId" />
+          <input type="hidden" id="giftImagemAtual" />
 
           <div class="gift-form-grid">
             <div class="form-group">
@@ -113,6 +114,18 @@
               <input type="text" id="giftDescricao" placeholder="Descrição do presente" />
             </div>
 
+            <div class="form-group form-group-full">
+              <label for="giftImagemFile">Foto do presente</label>
+              <input
+                type="file"
+                id="giftImagemFile"
+                accept="image/png,image/jpeg,image/jpg,image/webp"
+              />
+              <small class="field-hint">
+                Formatos aceitos: PNG, JPG, JPEG e WEBP.
+              </small>
+            </div>
+
             <div class="form-group checkbox-group form-group-full">
               <label class="checkbox-label">
                 <input type="checkbox" id="giftUsaCotas" />
@@ -124,6 +137,11 @@
               <label for="giftQuantidadeTotal">Quantidade total de cotas</label>
               <input type="number" id="giftQuantidadeTotal" min="1" value="1" />
             </div>
+          </div>
+
+          <div class="gift-image-preview hidden" id="giftImagePreviewWrapper">
+            <p class="preview-label">Prévia da imagem</p>
+            <img id="giftImagePreview" alt="Prévia da imagem do presente" />
           </div>
 
           <div class="gift-form-actions">
@@ -174,6 +192,7 @@
           <table>
             <thead>
               <tr>
+                <th>Foto</th>
                 <th>Presente</th>
                 <th>Valor</th>
                 <th>Tipo</th>
@@ -185,7 +204,7 @@
             </thead>
             <tbody id="presentesManageTableBody">
               <tr>
-                <td colspan="7">Carregando presentes...</td>
+                <td colspan="8">Carregando presentes...</td>
               </tr>
             </tbody>
           </table>
