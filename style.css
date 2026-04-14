@@ -1664,4 +1664,24 @@ textarea {
   .pix-qr img {
     max-width: 210px;
   }
+
+  .acompanhantes-wrapper {
+  margin-bottom: 18px;
+  padding: 18px;
+  border: 1px solid var(--border-soft);
+  border-radius: 18px;
+  background: #faf8f8;
+}
+
+.acompanhantes-title {
+  margin-bottom: 14px;
+  font-weight: 700;
+  color: var(--wine);
+}
+
+.acompanhantes-fields {
+  display: grid;
+  gap: 14px;
+}
+
 }

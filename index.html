@@ -333,7 +333,12 @@
 
           <div class="form-group">
             <label for="acompanhantes">Quantidade de acompanhantes</label>
-            <input type="number" id="acompanhantes" name="acompanhantes" placeholder="0" min="0" />
+            <input type="number" id="acompanhantes" name="acompanhantes" placeholder="0" min="0" max="10" />
+          </div>
+
+          <div id="acompanhantesNomesWrapper" class="acompanhantes-wrapper hidden">
+            <p class="acompanhantes-title">Nomes dos acompanhantes</p>
+            <div id="acompanhantesNomesFields" class="acompanhantes-fields"></div>
           </div>
 
           <div class="form-group">
@@ -403,7 +408,7 @@
             </div>
 
             <div class="pix-qr">
-              <img src="imagens/qrcode-pix.png" alt="QR Code PIX para presentear os noivos" />
+              <img src="imagens/qr-pix.png" alt="QR Code PIX para presentear os noivos" />
             </div>
           </div>
 

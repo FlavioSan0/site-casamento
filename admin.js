@@ -31,6 +31,11 @@ const giftImagePreview = document.getElementById("giftImagePreview");
 const giftSearchInput = document.getElementById("giftSearchInput");
 const giftFilterSelect = document.getElementById("giftFilterSelect");
 
+const confirmacoesSearchInput = document.getElementById("confirmacoesSearchInput");
+const confirmacoesPresencaFilter = document.getElementById("confirmacoesPresencaFilter");
+const confirmacoesAcompanhantesFilter = document.getElementById("confirmacoesAcompanhantesFilter");
+const exportConfirmacoesButton = document.getElementById("exportConfirmacoesButton");
+
 const confirmacoesTableBody = document.getElementById("confirmacoesTableBody");
 const presentesManageTableBody = document.getElementById("presentesManageTableBody");
 const reservasTableBody = document.getElementById("reservasTableBody");
@@ -43,6 +48,7 @@ const totalAcompanhantes = document.getElementById("totalAcompanhantes");
 const totalPresentesReservados = document.getElementById("totalPresentesReservados");
 
 let currentGifts = [];
+let currentConfirmacoes = [];
 
 async function checkSession() {
   const { data, error } = await supabaseClient.auth.getSession();
@@ -262,6 +268,102 @@ function fillGiftFormForEdit(gift) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+function getAcompanhantesNames(item) {
+  if (!item?.nomes_acompanhantes) return [];
+  if (Array.isArray(item.nomes_acompanhantes)) return item.nomes_acompanhantes.filter(Boolean);
+  return [];
+}
+
+function formatAcompanhantesNames(item) {
+  const names = getAcompanhantesNames(item);
+  if (!names.length) return "-";
+  return names.join(", ");
+}
+
+function applyConfirmacoesFilters() {
+  const searchTerm = (confirmacoesSearchInput?.value || "").trim().toLowerCase();
+  const presencaValue = confirmacoesPresencaFilter?.value || "todos";
+  const acompanhantesValue = confirmacoesAcompanhantesFilter?.value || "todos";
+
+  let filtered = [...currentConfirmacoes];
+
+  if (searchTerm) {
+    filtered = filtered.filter((item) => {
+      const baseText = [
+        item.nome || "",
+        item.telefone || "",
+        formatAcompanhantesNames(item)
+      ]
+        .join(" ")
+        .toLowerCase();
+
+      return baseText.includes(searchTerm);
+    });
+  }
+
+  filtered = filtered.filter((item) => {
+    const confirmou = item.presenca === "Sim, estarei presente";
+    const qtdAcompanhantes = Number(item.acompanhantes || 0);
+
+    if (presencaValue === "confirmados" && !confirmou) return false;
+    if (presencaValue === "nao_confirmados" && confirmou) return false;
+
+    if (acompanhantesValue === "com_acompanhantes" && qtdAcompanhantes <= 0) return false;
+    if (acompanhantesValue === "sem_acompanhantes" && qtdAcompanhantes > 0) return false;
+
+    return true;
+  });
+
+  renderConfirmacoes(filtered);
+  return filtered;
+}
+
+function exportConfirmacoesCsv() {
+  const filtered = applyConfirmacoesFilters();
+
+  if (!filtered.length) return;
+
+  const headers = [
+    "Nome",
+    "Telefone",
+    "Acompanhantes",
+    "Nomes dos acompanhantes",
+    "Presença",
+    "Observações",
+    "Data"
+  ];
+
+  const rows = filtered.map((item) => [
+    item.nome || "",
+    item.telefone || "",
+    Number(item.acompanhantes || 0),
+    formatAcompanhantesNames(item),
+    item.presenca || "",
+    item.observacoes || "",
+    formatDate(item.created_at)
+  ]);
+
+  const csvContent = [headers, ...rows]
+    .map((row) =>
+      row
+        .map((value) => `"${String(value).replaceAll('"', '""')}"`)
+        .join(";")
+    )
+    .join("\n");
+
+  const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "confirmacoes-casamento.csv";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  URL.revokeObjectURL(url);
+}
+
 if (giftValorInput) {
   giftValorInput.addEventListener("blur", () => {
     giftValorInput.value = formatGiftValue(giftValorInput.value);
@@ -290,6 +392,22 @@ if (giftSearchInput) {
 
 if (giftFilterSelect) {
   giftFilterSelect.addEventListener("change", applyGiftFilters);
+}
+
+if (confirmacoesSearchInput) {
+  confirmacoesSearchInput.addEventListener("input", applyConfirmacoesFilters);
+}
+
+if (confirmacoesPresencaFilter) {
+  confirmacoesPresencaFilter.addEventListener("change", applyConfirmacoesFilters);
+}
+
+if (confirmacoesAcompanhantesFilter) {
+  confirmacoesAcompanhantesFilter.addEventListener("change", applyConfirmacoesFilters);
+}
+
+if (exportConfirmacoesButton) {
+  exportConfirmacoesButton.addEventListener("click", exportConfirmacoesCsv);
 }
 
 if (loginForm) {
@@ -481,13 +599,14 @@ async function loadConfirmacoes() {
 
     if (error) throw error;
 
-    renderConfirmacoes(data || []);
-    updateConfirmacoesStats(data || []);
+    currentConfirmacoes = data || [];
+    applyConfirmacoesFilters();
+    updateConfirmacoesStats(currentConfirmacoes);
   } catch (error) {
     console.error("Erro ao carregar confirmações:", error);
     confirmacoesTableBody.innerHTML = `
       <tr>
-        <td colspan="6">Não foi possível carregar as confirmações.</td>
+        <td colspan="7">Não foi possível carregar as confirmações.</td>
       </tr>
     `;
   }
@@ -582,7 +701,7 @@ function renderConfirmacoes(confirmacoes) {
   if (!confirmacoes.length) {
     confirmacoesTableBody.innerHTML = `
       <tr>
-        <td colspan="6">Nenhuma confirmação encontrada.</td>
+        <td colspan="7">Nenhuma confirmação encontrada.</td>
       </tr>
     `;
     return;
@@ -597,6 +716,7 @@ function renderConfirmacoes(confirmacoes) {
           <td>${escapeHtml(item.nome || "")}</td>
           <td>${escapeHtml(item.telefone || "-")}</td>
           <td>${item.acompanhantes ?? 0}</td>
+          <td>${escapeHtml(formatAcompanhantesNames(item))}</td>
           <td>
             <span class="status-badge ${confirmou ? "status-confirmado" : "status-nao"}">
               ${escapeHtml(item.presenca || "-")}

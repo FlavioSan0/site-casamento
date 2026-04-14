@@ -217,6 +217,14 @@ select {
   margin-bottom: 18px;
 }
 
+.confirmations-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
 .gift-form {
   width: 100%;
 }
@@ -284,11 +292,16 @@ select {
   flex-wrap: wrap;
 }
 
-.gift-manage-toolbar {
+.gift-manage-toolbar,
+.confirmacoes-toolbar {
   display: grid;
-  grid-template-columns: 1.4fr 0.8fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
   margin-bottom: 18px;
+}
+
+.gift-manage-toolbar {
+  grid-template-columns: 1.4fr 0.8fr;
 }
 
 .toolbar-field {
@@ -303,7 +316,7 @@ select {
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 900px;
+  min-width: 1100px;
 }
 
 thead th {
@@ -401,6 +414,14 @@ tbody td {
   }
 }
 
+@media (max-width: 860px) {
+  .gift-form-grid,
+  .gift-manage-toolbar,
+  .confirmacoes-toolbar {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 720px) {
   .login-card,
   .panel-block,
@@ -428,17 +449,12 @@ tbody td {
     padding: 18px;
   }
 
-  .gift-form-grid,
-  .gift-manage-toolbar {
-    grid-template-columns: 1fr;
-  }
-
   .form-group-full {
     grid-column: auto;
   }
 
   table {
-    min-width: 760px;
+    min-width: 900px;
   }
 }
 
@@ -455,7 +471,8 @@ tbody td {
     font-size: 1.7rem;
   }
 
-  .dashboard-header {
+  .dashboard-header,
+  .confirmations-header {
     align-items: stretch;
   }
 
@@ -464,7 +481,8 @@ tbody td {
     width: 100%;
   }
 
-  .dashboard-actions .btn {
+  .dashboard-actions .btn,
+  .confirmations-header .btn {
     width: 100%;
     text-align: center;
   }

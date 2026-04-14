@@ -51,6 +51,44 @@ function updateCountdown() {
 updateCountdown();
 setInterval(updateCountdown, 1000);
 
+const acompanhantesInput = document.getElementById("acompanhantes");
+const acompanhantesNomesWrapper = document.getElementById("acompanhantesNomesWrapper");
+const acompanhantesNomesFields = document.getElementById("acompanhantesNomesFields");
+
+function renderAcompanhantesFields() {
+  if (!acompanhantesInput || !acompanhantesNomesWrapper || !acompanhantesNomesFields) return;
+
+  const quantidade = Number(acompanhantesInput.value || 0);
+
+  if (!quantidade || quantidade <= 0) {
+    acompanhantesNomesWrapper.classList.add("hidden");
+    acompanhantesNomesFields.innerHTML = "";
+    return;
+  }
+
+  acompanhantesNomesWrapper.classList.remove("hidden");
+
+  acompanhantesNomesFields.innerHTML = Array.from({ length: quantidade }, (_, index) => {
+    const number = index + 1;
+    return `
+      <div class="form-group">
+        <label for="acompanhante_nome_${number}">Nome do acompanhante ${number}</label>
+        <input
+          type="text"
+          id="acompanhante_nome_${number}"
+          class="acompanhante-nome-input"
+          placeholder="Digite o nome completo"
+        />
+      </div>
+    `;
+  }).join("");
+}
+
+if (acompanhantesInput) {
+  acompanhantesInput.addEventListener("input", renderAcompanhantesFields);
+  acompanhantesInput.addEventListener("change", renderAcompanhantesFields);
+}
+
 const rsvpForm = document.getElementById("rsvpForm");
 const formMessage = document.getElementById("formMessage");
 const submitRsvpButton = document.getElementById("submitRsvpButton");
@@ -92,6 +130,21 @@ if (rsvpForm) {
       return;
     }
 
+    const acompanhantesNomes = Array.from(
+      document.querySelectorAll(".acompanhante-nome-input")
+    )
+      .map((input) => input.value.trim())
+      .filter(Boolean);
+
+    if (acompanhantes > 0 && acompanhantesNomes.length !== acompanhantes) {
+      if (formMessage) {
+        formMessage.textContent =
+          "Preencha o nome de todos os acompanhantes para continuar.";
+        formMessage.style.color = "#800000";
+      }
+      return;
+    }
+
     if (submitRsvpButton) {
       submitRsvpButton.disabled = true;
       submitRsvpButton.textContent = "Enviando...";
@@ -105,6 +158,7 @@ if (rsvpForm) {
       nome,
       telefone: telefone || null,
       acompanhantes,
+      nomes_acompanhantes: acompanhantesNomes.length ? acompanhantesNomes : null,
       presenca,
       observacoes: observacoes || null,
     };
@@ -124,6 +178,7 @@ if (rsvpForm) {
       }
 
       rsvpForm.reset();
+      renderAcompanhantesFields();
     } catch (error) {
       console.error("Erro ao enviar confirmação:", error);
 
