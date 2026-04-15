@@ -39,6 +39,8 @@ const exportConfirmacoesButton = document.getElementById("exportConfirmacoesButt
 const confirmacoesTableBody = document.getElementById("confirmacoesTableBody");
 const presentesManageTableBody = document.getElementById("presentesManageTableBody");
 const reservasTableBody = document.getElementById("reservasTableBody");
+const presentesMobileCards = document.getElementById("presentesMobileCards");
+const reservasMobileCards = document.getElementById("reservasMobileCards");
 
 const totalConfirmacoes = document.getElementById("totalConfirmacoes");
 const totalPresentesSim = document.getElementById("totalPresentesSim");
@@ -853,6 +855,9 @@ async function loadPresentes() {
         <td colspan="8">Não foi possível carregar os presentes.</td>
       </tr>
     `;
+    if (presentesMobileCards) {
+      presentesMobileCards.innerHTML = `<p class="mobile-empty-state">Não foi possível carregar os presentes.</p>`;
+    }
   }
 }
 
@@ -882,6 +887,9 @@ async function loadReservas() {
         <td colspan="4">Não foi possível carregar as reservas.</td>
       </tr>
     `;
+    if (reservasMobileCards) {
+      reservasMobileCards.innerHTML = `<p class="mobile-empty-state">Não foi possível carregar as reservas.</p>`;
+    }
   }
 }
 
@@ -937,18 +945,18 @@ function renderConfirmacoes(confirmacoes) {
 
       return `
         <tr>
-          <td>${escapeHtml(item.nome || "")}</td>
-          <td>${escapeHtml(item.telefone || "-")}</td>
-          <td>${item.acompanhantes ?? 0}</td>
-          <td>${escapeHtml(formatAcompanhantesNames(item))}</td>
-          <td>
+          <td data-label="Nome">${escapeHtml(item.nome || "")}</td>
+          <td data-label="Telefone">${escapeHtml(item.telefone || "-")}</td>
+          <td data-label="Acompanhantes">${item.acompanhantes ?? 0}</td>
+          <td data-label="Nomes acompanhantes">${escapeHtml(formatAcompanhantesNames(item))}</td>
+          <td data-label="Presença">
             <span class="status-badge ${confirmou ? "status-confirmado" : "status-nao"}">
               ${escapeHtml(item.presenca || "-")}
             </span>
           </td>
-          <td>${escapeHtml(item.observacoes || "-")}</td>
-          <td>${formatDate(item.created_at)}</td>
-          <td>
+          <td data-label="Observações">${escapeHtml(item.observacoes || "-")}</td>
+          <td data-label="Data">${formatDate(item.created_at)}</td>
+          <td data-label="Ação">
             <div class="action-button-group">
               <button type="button" class="action-button edit-confirmacao-button" data-id="${item.id}">
                 Editar
@@ -1007,6 +1015,9 @@ function renderPresentes(presentes) {
         <td colspan="8">Nenhum presente encontrado para esse filtro.</td>
       </tr>
     `;
+    if (presentesMobileCards) {
+      presentesMobileCards.innerHTML = `<p class="mobile-empty-state">Nenhum presente encontrado para esse filtro.</p>`;
+    }
     return;
   }
 
@@ -1022,14 +1033,17 @@ function renderPresentes(presentes) {
 
       return `
         <tr>
-          <td>${imagem}</td>
-          <td>${escapeHtml(item.nome || "")}</td>
-          <td>${escapeHtml(item.valor || "-")}</td>
-          <td>${tipo}</td>
-          <td>${total}</td>
-          <td>${reservadas}</td>
-          <td>${disponiveis}</td>
-          <td>
+          <td data-label="" class="mobile-photo-cell">
+            ${imagem}
+            <span class="mobile-card-title">${escapeHtml(item.nome || "")}</span>
+          </td>
+          <td data-label="Presente">${escapeHtml(item.nome || "")}</td>
+          <td data-label="Valor">${escapeHtml(item.valor || "-")}</td>
+          <td data-label="Tipo">${tipo}</td>
+          <td data-label="Total">${total}</td>
+          <td data-label="Reservadas">${reservadas}</td>
+          <td data-label="Disponíveis">${disponiveis}</td>
+          <td data-label="Ação">
             <div class="action-button-group">
               <button type="button" class="action-button edit-gift-button" data-id="${item.id}">
                 Editar
@@ -1043,6 +1057,63 @@ function renderPresentes(presentes) {
       `;
     })
     .join("");
+
+  if (presentesMobileCards) {
+    presentesMobileCards.innerHTML = presentes
+      .map((item) => {
+        const total = Number(item.quantidade_total || 0);
+        const reservadas = Number(item.quantidade_reservada || 0);
+        const disponiveis = Math.max(total - reservadas, 0);
+        const tipo = item.usa_cotas ? "Com cotas" : "Único";
+        const imagem = item.imagem_url
+          ? `<img src="${escapeHtml(item.imagem_url)}" alt="${escapeHtml(item.nome || "Presente")}" class="admin-gift-thumb" />`
+          : `<div class="admin-gift-thumb-placeholder">Sem foto</div>`;
+
+        return `
+          <div class="mobile-admin-card">
+            <div class="mobile-admin-card-head">
+              <div class="mobile-admin-card-image">${imagem}</div>
+              <div>
+                <div class="mobile-admin-card-title">${escapeHtml(item.nome || "")}</div>
+                <div class="mobile-admin-card-subtitle">${escapeHtml(item.valor || "-")}</div>
+              </div>
+            </div>
+
+            <div class="mobile-admin-card-body">
+              <div class="mobile-admin-card-row">
+                <span class="mobile-admin-card-label">Tipo</span>
+                <div class="mobile-admin-card-value">${tipo}</div>
+              </div>
+
+              <div class="mobile-admin-card-row">
+                <span class="mobile-admin-card-label">Total</span>
+                <div class="mobile-admin-card-value">${total}</div>
+              </div>
+
+              <div class="mobile-admin-card-row">
+                <span class="mobile-admin-card-label">Reservadas</span>
+                <div class="mobile-admin-card-value">${reservadas}</div>
+              </div>
+
+              <div class="mobile-admin-card-row">
+                <span class="mobile-admin-card-label">Disponíveis</span>
+                <div class="mobile-admin-card-value">${disponiveis}</div>
+              </div>
+            </div>
+
+            <div class="mobile-admin-card-actions">
+              <button type="button" class="btn btn-outline-dark edit-gift-button" data-id="${item.id}">
+                Editar
+              </button>
+              <button type="button" class="btn btn-primary delete-gift-button" data-id="${item.id}">
+                Excluir
+              </button>
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+  }
 
   bindGiftButtonsAdmin();
 }
@@ -1062,6 +1133,24 @@ function bindGiftButtonsAdmin() {
       const giftId = Number(button.dataset.id);
       const gift = currentGifts.find((item) => Number(item.id) === giftId);
       if (!gift) return;
+
+      const linkedReservas = currentReservas.filter(
+        (reserva) => Number(reserva.presente_id) === Number(gift.id)
+      );
+
+      if (linkedReservas.length > 0) {
+        openDeleteModal({
+          tag: "Exclusão bloqueada",
+          title: "Este presente possui reservas vinculadas",
+          text: `O presente "${gift.nome}" não pode ser excluído agora, pois possui ${linkedReservas.length} reserva(s) vinculada(s). Exclua primeiro as reservas desse presente.`,
+          onConfirm: async () => {
+            return;
+          }
+        });
+
+        confirmDeleteButton.textContent = "Entendi";
+        return;
+      }
 
       openDeleteModal({
         tag: "Excluir presente",
@@ -1090,6 +1179,9 @@ function renderReservas(reservas) {
         <td colspan="4">Nenhuma reserva encontrada.</td>
       </tr>
     `;
+    if (reservasMobileCards) {
+      reservasMobileCards.innerHTML = `<p class="mobile-empty-state">Nenhuma reserva encontrada.</p>`;
+    }
     return;
   }
 
@@ -1099,10 +1191,10 @@ function renderReservas(reservas) {
 
       return `
         <tr>
-          <td>${escapeHtml(nomePresente)}</td>
-          <td>${escapeHtml(item.reservado_por || "-")}</td>
-          <td>${formatDate(item.created_at)}</td>
-          <td>
+          <td data-label="Presente">${escapeHtml(nomePresente)}</td>
+          <td data-label="Reservado por">${escapeHtml(item.reservado_por || "-")}</td>
+          <td data-label="Data">${formatDate(item.created_at)}</td>
+          <td data-label="Ação">
             <div class="action-button-group">
               <button type="button" class="action-button action-button-danger delete-reserva-button" data-id="${item.id}">
                 Excluir
@@ -1113,6 +1205,48 @@ function renderReservas(reservas) {
       `;
     })
     .join("");
+
+  if (reservasMobileCards) {
+    reservasMobileCards.innerHTML = reservas
+      .map((item) => {
+        const nomePresente = item.presentes?.nome || "-";
+
+        return `
+          <div class="mobile-admin-card">
+            <div class="mobile-admin-card-head">
+              <div>
+                <div class="mobile-admin-card-title">${escapeHtml(nomePresente)}</div>
+                <div class="mobile-admin-card-subtitle">${escapeHtml(item.reservado_por || "-")}</div>
+              </div>
+            </div>
+
+            <div class="mobile-admin-card-body">
+              <div class="mobile-admin-card-row">
+                <span class="mobile-admin-card-label">Presente</span>
+                <div class="mobile-admin-card-value">${escapeHtml(nomePresente)}</div>
+              </div>
+
+              <div class="mobile-admin-card-row">
+                <span class="mobile-admin-card-label">Reservado por</span>
+                <div class="mobile-admin-card-value">${escapeHtml(item.reservado_por || "-")}</div>
+              </div>
+
+              <div class="mobile-admin-card-row">
+                <span class="mobile-admin-card-label">Data</span>
+                <div class="mobile-admin-card-value">${formatDate(item.created_at)}</div>
+              </div>
+            </div>
+
+            <div class="mobile-admin-card-actions">
+              <button type="button" class="btn btn-primary delete-reserva-button" data-id="${item.id}">
+                Excluir reserva
+              </button>
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+  }
 
   bindReservaButtons();
 }
