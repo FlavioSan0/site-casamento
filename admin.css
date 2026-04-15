@@ -312,13 +312,11 @@ select {
 
 .table-wrapper {
   width: 100%;
-  overflow-x: auto;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 1180px;
 }
 
 thead th {
@@ -542,6 +540,10 @@ tbody td {
   min-width: 150px;
 }
 
+.mobile-card-title {
+  display: none;
+}
+
 @media (max-width: 1180px) {
   .stats-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -590,13 +592,84 @@ tbody td {
     grid-column: auto;
   }
 
-  table {
-    min-width: 980px;
-  }
-
   .modal-card,
   .confirm-delete-card {
     padding: 18px;
+  }
+}
+
+@media (max-width: 640px) {
+  .table-wrapper {
+    overflow: visible;
+  }
+
+  .responsive-table {
+    border-collapse: separate;
+    border-spacing: 0 12px;
+  }
+
+  .responsive-table thead {
+    display: none;
+  }
+
+  .responsive-table,
+  .responsive-table tbody,
+  .responsive-table tr,
+  .responsive-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .responsive-table tbody tr {
+    background: #faf8f8;
+    border: 1px solid #ece4e4;
+    border-radius: 18px;
+    padding: 14px;
+    box-shadow: 0 8px 18px rgba(8, 38, 94, 0.05);
+  }
+
+  .responsive-table tbody td {
+    border: none;
+    padding: 8px 0;
+    white-space: normal;
+  }
+
+  .responsive-table tbody td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--wine);
+    margin-bottom: 4px;
+  }
+
+  .responsive-table tbody td[data-label="Ação"]::before,
+  .responsive-table tbody td.mobile-photo-cell::before {
+    display: none;
+  }
+
+  .responsive-table .action-button-group {
+    margin-top: 6px;
+  }
+
+  .responsive-table-gifts .mobile-photo-cell {
+    padding-bottom: 12px;
+  }
+
+  .responsive-table-gifts .mobile-photo-cell img,
+  .responsive-table-gifts .mobile-photo-cell .admin-gift-thumb-placeholder {
+    width: 96px;
+    height: 96px;
+  }
+
+  .responsive-table-gifts .mobile-card-title {
+    display: block;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-top: 8px;
   }
 }
 
@@ -649,5 +722,10 @@ tbody td {
 
   .gift-image-preview img {
     max-width: 100%;
+  }
+
+  .responsive-table tbody tr {
+    padding: 12px;
+    border-radius: 16px;
   }
 }
