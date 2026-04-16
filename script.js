@@ -184,16 +184,15 @@ if (rsvpForm) {
       console.log("Tentando enviar confirmação com role:", roleLabel);
       console.log("Payload enviado:", payload);
 
-      const { data, error } = await supabaseClient
-        .from("confirmacoes")
-        .insert([payload])
-        .select();
+      const { error } = await supabaseClient
+      .from("confirmacoes")
+      .insert([payload]);
 
-      if (error) {
+        if (error) {
         throw error;
       }
 
-      console.log("Confirmação salva:", data);
+console.log("Confirmação salva com sucesso");
 
       if (formMessage) {
         formMessage.textContent = "Confirmação enviada com sucesso. Obrigado!";
