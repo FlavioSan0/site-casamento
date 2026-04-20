@@ -14,6 +14,13 @@ const loginMessage = document.getElementById("loginMessage");
 const loginButton = document.getElementById("loginButton");
 const logoutButton = document.getElementById("logoutButton");
 
+const refreshDashboardButton = document.getElementById("refreshDashboardButton");
+const refreshPresentesButton = document.getElementById("refreshPresentesButton");
+const refreshConfirmacoesButton = document.getElementById("refreshConfirmacoesButton");
+const refreshReservasButton = document.getElementById("refreshReservasButton");
+const clearGiftFiltersButton = document.getElementById("clearGiftFiltersButton");
+const clearConfirmacoesFiltersButton = document.getElementById("clearConfirmacoesFiltersButton");
+
 const giftForm = document.getElementById("giftForm");
 const giftFormMessage = document.getElementById("giftFormMessage");
 const giftSubmitButton = document.getElementById("giftSubmitButton");
@@ -103,6 +110,12 @@ function showDashboard() {
   dashboardSection.classList.remove("hidden");
 }
 
+function setMessage(element, text, color = "") {
+  if (!element) return;
+  element.textContent = text;
+  element.style.color = color;
+}
+
 function updateGiftQuantityVisibility() {
   if (!giftUsaCotas || !giftQuantidadeWrapper || !giftQuantidadeTotal) return;
 
@@ -120,7 +133,6 @@ function formatGiftValue(value) {
   if (!value) return "";
 
   const trimmed = value.trim();
-
   if (!trimmed) return "";
 
   if (/^r\$/i.test(trimmed)) {
@@ -203,7 +215,6 @@ async function compressGiftImage(file) {
   const maxHeight = 1400;
 
   let { width, height } = image;
-
   const scale = Math.min(maxWidth / width, maxHeight / height, 1);
   const targetWidth = Math.round(width * scale);
   const targetHeight = Math.round(height * scale);
@@ -230,7 +241,6 @@ async function compressGiftImage(file) {
     .toLowerCase();
 
   const safeBaseName = originalBaseName || "imagem";
-
   return new File([blob], `${safeBaseName}.jpg`, { type: "image/jpeg" });
 }
 
@@ -265,7 +275,7 @@ function resetGiftForm() {
   giftImagemAtual.value = "";
   giftSubmitButton.textContent = "Cadastrar presente";
   giftCancelEditButton.classList.add("hidden");
-  giftFormMessage.textContent = "";
+  setMessage(giftFormMessage, "");
   updateGiftQuantityVisibility();
   previewGiftImageFromUrl("");
 }
@@ -344,7 +354,7 @@ function openConfirmacaoModal(item) {
   editConfirmacaoAcompanhantes.value = acompanhantes;
   editConfirmacaoPresenca.value = item.presenca || "";
   editConfirmacaoObservacoes.value = item.observacoes || "";
-  editConfirmacaoMessage.textContent = "";
+  setMessage(editConfirmacaoMessage, "");
 
   renderEditAcompanhantesFields(names, acompanhantes);
   confirmacaoModalBackdrop.classList.remove("hidden");
@@ -354,7 +364,7 @@ function closeEditModal() {
   if (!confirmacaoModalBackdrop) return;
   confirmacaoModalBackdrop.classList.add("hidden");
   editConfirmacaoForm.reset();
-  editConfirmacaoMessage.textContent = "";
+  setMessage(editConfirmacaoMessage, "");
   renderEditAcompanhantesFields([], 0);
 }
 
@@ -364,6 +374,7 @@ function openDeleteModal(config) {
   deleteModalTitle.textContent = config.title || "Tem certeza que deseja excluir?";
   deleteModalText.textContent =
     config.text || "Essa ação removerá o item selecionado permanentemente.";
+  confirmDeleteButton.textContent = config.confirmText || "Sim, excluir";
   deleteModalBackdrop.classList.remove("hidden");
 }
 
@@ -372,6 +383,19 @@ function closeDeleteModal() {
   deleteAction = null;
   confirmDeleteButton.disabled = false;
   confirmDeleteButton.textContent = "Sim, excluir";
+}
+
+function clearGiftFilters() {
+  giftSearchInput.value = "";
+  giftFilterSelect.value = "todos";
+  applyGiftFilters();
+}
+
+function clearConfirmacoesFilters() {
+  confirmacoesSearchInput.value = "";
+  confirmacoesPresencaFilter.value = "todos";
+  confirmacoesAcompanhantesFilter.value = "todos";
+  applyConfirmacoesFilters();
 }
 
 function applyConfirmacoesFilters() {
@@ -498,6 +522,30 @@ if (exportConfirmacoesButton) {
   exportConfirmacoesButton.addEventListener("click", exportConfirmacoesCsv);
 }
 
+if (refreshDashboardButton) {
+  refreshDashboardButton.addEventListener("click", loadDashboardData);
+}
+
+if (refreshPresentesButton) {
+  refreshPresentesButton.addEventListener("click", loadPresentes);
+}
+
+if (refreshConfirmacoesButton) {
+  refreshConfirmacoesButton.addEventListener("click", loadConfirmacoes);
+}
+
+if (refreshReservasButton) {
+  refreshReservasButton.addEventListener("click", loadReservas);
+}
+
+if (clearGiftFiltersButton) {
+  clearGiftFiltersButton.addEventListener("click", clearGiftFilters);
+}
+
+if (clearConfirmacoesFiltersButton) {
+  clearConfirmacoesFiltersButton.addEventListener("click", clearConfirmacoesFilters);
+}
+
 if (editConfirmacaoAcompanhantes) {
   editConfirmacaoAcompanhantes.addEventListener("input", () => {
     let total = Number(editConfirmacaoAcompanhantes.value || 0);
@@ -538,7 +586,7 @@ if (confirmDeleteButton) {
     if (!deleteAction) return;
 
     confirmDeleteButton.disabled = true;
-    confirmDeleteButton.textContent = "Excluindo...";
+    confirmDeleteButton.textContent = "Processando...";
 
     try {
       await deleteAction.onConfirm();
@@ -547,7 +595,7 @@ if (confirmDeleteButton) {
       console.error("Erro na exclusão:", error);
       alert(error?.message || "Não foi possível concluir a exclusão.");
       confirmDeleteButton.disabled = false;
-      confirmDeleteButton.textContent = "Sim, excluir";
+      confirmDeleteButton.textContent = deleteAction?.confirmText || "Sim, excluir";
     }
   });
 }
@@ -572,26 +620,22 @@ if (editConfirmacaoForm) {
     const observacoes = editConfirmacaoObservacoes.value.trim();
 
     if (!id) {
-      editConfirmacaoMessage.textContent = "ID da confirmação não encontrado.";
-      editConfirmacaoMessage.style.color = "#800000";
+      setMessage(editConfirmacaoMessage, "ID da confirmação não encontrado.", "#800000");
       return;
     }
 
     if (!nome || !presenca) {
-      editConfirmacaoMessage.textContent = "Preencha os campos obrigatórios.";
-      editConfirmacaoMessage.style.color = "#800000";
+      setMessage(editConfirmacaoMessage, "Preencha os campos obrigatórios.", "#800000");
       return;
     }
 
     if (Number.isNaN(acompanhantes) || acompanhantes < 0) {
-      editConfirmacaoMessage.textContent = "Informe uma quantidade válida de acompanhantes.";
-      editConfirmacaoMessage.style.color = "#800000";
+      setMessage(editConfirmacaoMessage, "Informe uma quantidade válida de acompanhantes.", "#800000");
       return;
     }
 
     if (acompanhantes > 4) {
-      editConfirmacaoMessage.textContent = "O limite é de até 4 acompanhantes por confirmação.";
-      editConfirmacaoMessage.style.color = "#800000";
+      setMessage(editConfirmacaoMessage, "O limite é de até 4 acompanhantes por confirmação.", "#800000");
       return;
     }
 
@@ -600,15 +644,13 @@ if (editConfirmacaoForm) {
       .filter(Boolean);
 
     if (acompanhantes > 0 && acompanhantesNames.length !== acompanhantes) {
-      editConfirmacaoMessage.textContent =
-        "Preencha o nome de todos os acompanhantes para continuar.";
-      editConfirmacaoMessage.style.color = "#800000";
+      setMessage(editConfirmacaoMessage, "Preencha o nome de todos os acompanhantes para continuar.", "#800000");
       return;
     }
 
     saveConfirmacaoButton.disabled = true;
     saveConfirmacaoButton.textContent = "Salvando...";
-    editConfirmacaoMessage.textContent = "";
+    setMessage(editConfirmacaoMessage, "");
 
     try {
       const payload = {
@@ -629,12 +671,10 @@ if (editConfirmacaoForm) {
       if (error) throw error;
 
       if (!data || data.length === 0) {
-        throw new Error("Nenhum registro foi atualizado. Verifique a policy da tabela confirmacoes.");
+        throw new Error("Nenhum registro foi atualizado.");
       }
 
-      editConfirmacaoMessage.textContent = "Confirmação atualizada com sucesso.";
-      editConfirmacaoMessage.style.color = "#355b46";
-
+      setMessage(editConfirmacaoMessage, "Confirmação atualizada com sucesso.", "#355b46");
       await loadConfirmacoes();
 
       setTimeout(() => {
@@ -642,9 +682,7 @@ if (editConfirmacaoForm) {
       }, 500);
     } catch (error) {
       console.error("Erro ao atualizar confirmação:", error);
-      editConfirmacaoMessage.textContent =
-        error?.message || "Não foi possível atualizar a confirmação.";
-      editConfirmacaoMessage.style.color = "#800000";
+      setMessage(editConfirmacaoMessage, error?.message || "Não foi possível atualizar a confirmação.", "#800000");
     } finally {
       saveConfirmacaoButton.disabled = false;
       saveConfirmacaoButton.textContent = "Salvar alterações";
@@ -660,14 +698,13 @@ if (loginForm) {
     const password = document.getElementById("adminPassword").value.trim();
 
     if (!email || !password) {
-      loginMessage.textContent = "Preencha e-mail e senha.";
-      loginMessage.style.color = "#800000";
+      setMessage(loginMessage, "Preencha e-mail e senha.", "#800000");
       return;
     }
 
     loginButton.disabled = true;
     loginButton.textContent = "Entrando...";
-    loginMessage.textContent = "";
+    setMessage(loginMessage, "");
 
     try {
       const { error } = await supabaseClient.auth.signInWithPassword({
@@ -677,15 +714,12 @@ if (loginForm) {
 
       if (error) throw error;
 
-      loginMessage.textContent = "Login realizado com sucesso.";
-      loginMessage.style.color = "#355b46";
-
+      setMessage(loginMessage, "Login realizado com sucesso.", "#355b46");
       showDashboard();
       await loadDashboardData();
     } catch (error) {
       console.error("Erro no login:", error);
-      loginMessage.textContent = "Não foi possível entrar. Verifique e-mail e senha.";
-      loginMessage.style.color = "#800000";
+      setMessage(loginMessage, "Não foi possível entrar. Verifique e-mail e senha.", "#800000");
     } finally {
       loginButton.disabled = false;
       loginButton.textContent = "Entrar";
@@ -713,14 +747,12 @@ if (giftForm) {
     const selectedFile = giftImagemFile?.files?.[0] || null;
 
     if (!nome) {
-      giftFormMessage.textContent = "Informe o nome do presente.";
-      giftFormMessage.style.color = "#800000";
+      setMessage(giftFormMessage, "Informe o nome do presente.", "#800000");
       return;
     }
 
     if (usaCotas && (!quantidadeTotal || Number.isNaN(quantidadeTotal) || quantidadeTotal < 1)) {
-      giftFormMessage.textContent = "Informe uma quantidade total válida para as cotas.";
-      giftFormMessage.style.color = "#800000";
+      setMessage(giftFormMessage, "Informe uma quantidade total válida para as cotas.", "#800000");
       return;
     }
 
@@ -728,8 +760,7 @@ if (giftForm) {
       selectedFile &&
       !["image/png", "image/jpeg", "image/jpg", "image/webp"].includes(selectedFile.type)
     ) {
-      giftFormMessage.textContent = "Envie uma imagem PNG, JPG, JPEG ou WEBP.";
-      giftFormMessage.style.color = "#800000";
+      setMessage(giftFormMessage, "Envie uma imagem PNG, JPG, JPEG ou WEBP.", "#800000");
       return;
     }
 
@@ -738,39 +769,32 @@ if (giftForm) {
 
     if (editId) {
       if (!usaCotas && quantidadeReservadaAtual > 1) {
-        giftFormMessage.textContent =
-          "Este presente já possui mais de uma reserva. Mantenha-o como presente com cotas.";
-        giftFormMessage.style.color = "#800000";
+        setMessage(giftFormMessage, "Este presente já possui mais de uma reserva. Mantenha-o como presente com cotas.", "#800000");
         return;
       }
 
       if (usaCotas && quantidadeTotal < quantidadeReservadaAtual) {
-        giftFormMessage.textContent =
-          "A quantidade total não pode ser menor do que a quantidade já reservada.";
-        giftFormMessage.style.color = "#800000";
+        setMessage(giftFormMessage, "A quantidade total não pode ser menor do que a quantidade já reservada.", "#800000");
         return;
       }
     }
 
     giftSubmitButton.disabled = true;
     giftSubmitButton.textContent = editId ? "Salvando..." : "Cadastrando...";
-    giftFormMessage.textContent = "";
+    setMessage(giftFormMessage, "");
 
     try {
       let imagemUrl = giftImagemAtual.value || null;
 
       if (selectedFile) {
-        giftFormMessage.textContent = "Processando e enviando imagem...";
-        giftFormMessage.style.color = "#08265e";
+        setMessage(giftFormMessage, "Processando e enviando imagem...", "#08265e");
         imagemUrl = await uploadGiftImage(selectedFile);
       }
 
       if (editId) {
         const quantidadeReservada = usaCotas
           ? quantidadeReservadaAtual
-          : quantidadeReservadaAtual > 0
-            ? 1
-            : 0;
+          : quantidadeReservadaAtual > 0 ? 1 : 0;
 
         const status = quantidadeReservada >= quantidadeTotal ? "reservado" : "disponivel";
 
@@ -790,7 +814,7 @@ if (giftForm) {
 
         if (error) throw error;
 
-        giftFormMessage.textContent = "Presente atualizado com sucesso.";
+        setMessage(giftFormMessage, "Presente atualizado com sucesso.", "#355b46");
       } else {
         const { error } = await supabaseClient.from("presentes").insert([
           {
@@ -807,17 +831,14 @@ if (giftForm) {
 
         if (error) throw error;
 
-        giftFormMessage.textContent = "Presente cadastrado com sucesso.";
+        setMessage(giftFormMessage, "Presente cadastrado com sucesso.", "#355b46");
       }
 
-      giftFormMessage.style.color = "#355b46";
       resetGiftForm();
       await loadPresentes();
     } catch (error) {
       console.error("Erro ao salvar presente:", error);
-      giftFormMessage.textContent =
-        error?.message || "Não foi possível salvar o presente.";
-      giftFormMessage.style.color = "#800000";
+      setMessage(giftFormMessage, error?.message || "Não foi possível salvar o presente.", "#800000");
     } finally {
       giftSubmitButton.disabled = false;
       giftSubmitButton.textContent = giftEditId.value ? "Salvar alterações" : "Cadastrar presente";
@@ -846,11 +867,7 @@ async function loadConfirmacoes() {
     updateConfirmacoesStats(currentConfirmacoes);
   } catch (error) {
     console.error("Erro ao carregar confirmações:", error);
-    confirmacoesTableBody.innerHTML = `
-      <tr>
-        <td colspan="8">Não foi possível carregar as confirmações.</td>
-      </tr>
-    `;
+    confirmacoesTableBody.innerHTML = `<tr><td colspan="8">Não foi possível carregar as confirmações.</td></tr>`;
   }
 }
 
@@ -868,11 +885,7 @@ async function loadPresentes() {
     updatePresentesStats(currentGifts);
   } catch (error) {
     console.error("Erro ao carregar presentes:", error);
-    presentesManageTableBody.innerHTML = `
-      <tr>
-        <td colspan="8">Não foi possível carregar os presentes.</td>
-      </tr>
-    `;
+    presentesManageTableBody.innerHTML = `<tr><td colspan="8">Não foi possível carregar os presentes.</td></tr>`;
     if (presentesMobileCards) {
       presentesMobileCards.innerHTML = `<p class="mobile-empty-state">Não foi possível carregar os presentes.</p>`;
     }
@@ -900,11 +913,7 @@ async function loadReservas() {
     renderReservas(currentReservas);
   } catch (error) {
     console.error("Erro ao carregar reservas:", error);
-    reservasTableBody.innerHTML = `
-      <tr>
-        <td colspan="4">Não foi possível carregar as reservas.</td>
-      </tr>
-    `;
+    reservasTableBody.innerHTML = `<tr><td colspan="4">Não foi possível carregar as reservas.</td></tr>`;
     if (reservasMobileCards) {
       reservasMobileCards.innerHTML = `<p class="mobile-empty-state">Não foi possível carregar as reservas.</p>`;
     }
@@ -949,11 +958,7 @@ function applyGiftFilters() {
 
 function renderConfirmacoes(confirmacoes) {
   if (!confirmacoes.length) {
-    confirmacoesTableBody.innerHTML = `
-      <tr>
-        <td colspan="8">Nenhuma confirmação encontrada.</td>
-      </tr>
-    `;
+    confirmacoesTableBody.innerHTML = `<tr><td colspan="8">Nenhuma confirmação encontrada.</td></tr>`;
     return;
   }
 
@@ -1012,6 +1017,7 @@ function bindConfirmacaoButtons() {
         tag: "Excluir confirmação",
         title: "Tem certeza que deseja excluir?",
         text: `A confirmação de "${item.nome}" será removida permanentemente.`,
+        confirmText: "Sim, excluir",
         onConfirm: async () => {
           const { error } = await supabaseClient
             .from("confirmacoes")
@@ -1028,11 +1034,7 @@ function bindConfirmacaoButtons() {
 
 function renderPresentes(presentes) {
   if (!presentes.length) {
-    presentesManageTableBody.innerHTML = `
-      <tr>
-        <td colspan="8">Nenhum presente encontrado para esse filtro.</td>
-      </tr>
-    `;
+    presentesManageTableBody.innerHTML = `<tr><td colspan="8">Nenhum presente encontrado para esse filtro.</td></tr>`;
     if (presentesMobileCards) {
       presentesMobileCards.innerHTML = `<p class="mobile-empty-state">Nenhum presente encontrado para esse filtro.</p>`;
     }
@@ -1051,17 +1053,14 @@ function renderPresentes(presentes) {
 
       return `
         <tr>
-          <td data-label="" class="mobile-photo-cell">
-            ${imagem}
-            <span class="mobile-card-title">${escapeHtml(item.nome || "")}</span>
-          </td>
-          <td data-label="Presente">${escapeHtml(item.nome || "")}</td>
-          <td data-label="Valor">${escapeHtml(item.valor || "-")}</td>
-          <td data-label="Tipo">${tipo}</td>
-          <td data-label="Total">${total}</td>
-          <td data-label="Reservadas">${reservadas}</td>
-          <td data-label="Disponíveis">${disponiveis}</td>
-          <td data-label="Ação">
+          <td>${imagem}</td>
+          <td>${escapeHtml(item.nome || "")}</td>
+          <td>${escapeHtml(item.valor || "-")}</td>
+          <td>${tipo}</td>
+          <td>${total}</td>
+          <td>${reservadas}</td>
+          <td>${disponiveis}</td>
+          <td>
             <div class="action-button-group">
               <button type="button" class="action-button edit-gift-button" data-id="${item.id}">
                 Editar
@@ -1161,12 +1160,9 @@ function bindGiftButtonsAdmin() {
           tag: "Exclusão bloqueada",
           title: "Este presente possui reservas vinculadas",
           text: `O presente "${gift.nome}" não pode ser excluído agora, pois possui ${linkedReservas.length} reserva(s) vinculada(s). Exclua primeiro as reservas desse presente.`,
-          onConfirm: async () => {
-            return;
-          }
+          confirmText: "Entendi",
+          onConfirm: async () => {}
         });
-
-        confirmDeleteButton.textContent = "Entendi";
         return;
       }
 
@@ -1174,6 +1170,7 @@ function bindGiftButtonsAdmin() {
         tag: "Excluir presente",
         title: "Deseja excluir este presente?",
         text: `O presente "${gift.nome}" será removido do painel e do site principal.`,
+        confirmText: "Sim, excluir",
         onConfirm: async () => {
           const { error } = await supabaseClient
             .from("presentes")
@@ -1192,11 +1189,7 @@ function bindGiftButtonsAdmin() {
 
 function renderReservas(reservas) {
   if (!reservas.length) {
-    reservasTableBody.innerHTML = `
-      <tr>
-        <td colspan="4">Nenhuma reserva encontrada.</td>
-      </tr>
-    `;
+    reservasTableBody.innerHTML = `<tr><td colspan="4">Nenhuma reserva encontrada.</td></tr>`;
     if (reservasMobileCards) {
       reservasMobileCards.innerHTML = `<p class="mobile-empty-state">Nenhuma reserva encontrada.</p>`;
     }
@@ -1209,10 +1202,10 @@ function renderReservas(reservas) {
 
       return `
         <tr>
-          <td data-label="Presente">${escapeHtml(nomePresente)}</td>
-          <td data-label="Reservado por">${escapeHtml(item.reservado_por || "-")}</td>
-          <td data-label="Data">${formatDate(item.created_at)}</td>
-          <td data-label="Ação">
+          <td>${escapeHtml(nomePresente)}</td>
+          <td>${escapeHtml(item.reservado_por || "-")}</td>
+          <td>${formatDate(item.created_at)}</td>
+          <td>
             <div class="action-button-group">
               <button type="button" class="action-button action-button-danger delete-reserva-button" data-id="${item.id}">
                 Excluir
@@ -1282,6 +1275,7 @@ function bindReservaButtons() {
         tag: "Excluir reserva",
         title: "Deseja excluir esta reserva?",
         text: `A reserva feita por "${reserva.reservado_por}" para "${nomePresente}" será removida.`,
+        confirmText: "Sim, excluir",
         onConfirm: async () => {
           const { error } = await supabaseClient
             .from("reservas_presentes")
@@ -1304,7 +1298,6 @@ function updateConfirmacoesStats(confirmacoes) {
   );
 
   const totalConfirmados = confirmados.length;
-
   const naoConfirmados = confirmacoes.filter(
     (item) => item.presenca === "Não poderei comparecer"
   ).length;
@@ -1336,7 +1329,6 @@ function formatDate(value) {
   if (!value) return "-";
 
   const date = new Date(value);
-
   if (Number.isNaN(date.getTime())) return "-";
 
   return date.toLocaleString("pt-BR");

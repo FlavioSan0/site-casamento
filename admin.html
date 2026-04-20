@@ -13,7 +13,7 @@
         <p class="tag">Painel administrativo</p>
         <h1>Entrar no painel</h1>
         <p class="subtitle">
-          Acesse para visualizar confirmações de presença e reservas de presentes.
+          Acesse para visualizar confirmações, presentes e reservas do site.
         </p>
 
         <form id="loginForm" class="login-form">
@@ -37,37 +37,36 @@
     </section>
 
     <section class="dashboard-section hidden" id="dashboardSection">
-      <header class="dashboard-header">
-        <div>
+      <header class="dashboard-hero">
+        <div class="dashboard-hero-text">
           <p class="tag">Painel administrativo</p>
           <h1>Flávio & Ana Paula</h1>
+          <p class="dashboard-hero-subtitle">
+            Gerencie confirmações de presença, presentes cadastrados e reservas do site em um só lugar.
+          </p>
         </div>
 
-        <div class="dashboard-actions">
-          <a href="index.html" class="btn btn-outline-dark">
-            Voltar para o site
-          </a>
-
-          <button class="btn btn-outline-dark" id="logoutButton" type="button">
-            Sair
-          </button>
+        <div class="dashboard-hero-actions">
+          <a href="index.html" class="btn btn-outline-dark">Voltar para o site</a>
+          <button type="button" class="btn btn-soft" id="refreshDashboardButton">Atualizar dados</button>
+          <button type="button" class="btn btn-outline-dark" id="logoutButton">Sair</button>
         </div>
       </header>
 
       <section class="stats-grid">
-        <div class="stat-card">
-          <span id="totalConfirmacoes">0</span>
-          <small>Total de respostas</small>
-        </div>
-
-        <div class="stat-card">
+        <div class="stat-card stat-card-highlight">
           <span id="totalPresentesSim">0</span>
           <small>Confirmaram presença</small>
         </div>
 
-        <div class="stat-card">
+        <div class="stat-card stat-card-highlight-soft">
           <span id="totalPessoasConfirmadas">0</span>
           <small>Total de pessoas confirmadas</small>
+        </div>
+
+        <div class="stat-card">
+          <span id="totalConfirmacoes">0</span>
+          <small>Total de respostas</small>
         </div>
 
         <div class="stat-card">
@@ -87,10 +86,13 @@
       </section>
 
       <section class="panel-block">
-        <div class="block-header">
+        <div class="section-top">
           <div>
             <p class="tag">Cadastro</p>
             <h2>Lançar presentes</h2>
+            <p class="section-description">
+              Cadastre novos presentes, atualize informações e envie imagem para exibição no site.
+            </p>
           </div>
         </div>
 
@@ -106,7 +108,7 @@
 
             <div class="form-group">
               <label for="giftValor">Valor</label>
-              <input type="text" id="giftValor" placeholder="Ex.: R$ 350,00 ou Valor livre" />
+              <input type="text" id="giftValor" placeholder="Ex.: R$ 350,00 ou valor livre" />
             </div>
 
             <div class="form-group form-group-full">
@@ -144,7 +146,7 @@
             <img id="giftImagePreview" alt="Prévia da imagem do presente" />
           </div>
 
-          <div class="gift-form-actions">
+          <div class="form-actions">
             <button type="submit" class="btn btn-primary" id="giftSubmitButton">
               Cadastrar presente
             </button>
@@ -159,21 +161,25 @@
       </section>
 
       <section class="panel-block">
-        <div class="block-header">
+        <div class="section-top section-top-between">
           <div>
             <p class="tag">Gerenciamento</p>
             <h2>Presentes cadastrados</h2>
+            <p class="section-description">
+              Visualize, filtre e edite os presentes disponíveis no site.
+            </p>
+          </div>
+
+          <div class="inline-actions">
+            <button type="button" class="btn btn-soft" id="refreshPresentesButton">Atualizar</button>
+            <button type="button" class="btn btn-outline-dark" id="clearGiftFiltersButton">Limpar filtros</button>
           </div>
         </div>
 
-        <div class="gift-manage-toolbar">
+        <div class="toolbar-grid toolbar-grid-two">
           <div class="form-group toolbar-field">
             <label for="giftSearchInput">Pesquisar presente</label>
-            <input
-              type="text"
-              id="giftSearchInput"
-              placeholder="Digite o nome do presente"
-            />
+            <input type="text" id="giftSearchInput" placeholder="Digite o nome do presente" />
           </div>
 
           <div class="form-group toolbar-field">
@@ -216,25 +222,26 @@
       </section>
 
       <section class="panel-block">
-        <div class="block-header confirmations-header">
+        <div class="section-top section-top-between">
           <div>
             <p class="tag">Confirmações</p>
             <h2>Lista de presença</h2>
+            <p class="section-description">
+              Acompanhe respostas, edite dados e exporte a lista em CSV.
+            </p>
           </div>
 
-          <button type="button" class="btn btn-primary" id="exportConfirmacoesButton">
-            Exportar CSV
-          </button>
+          <div class="inline-actions">
+            <button type="button" class="btn btn-primary" id="exportConfirmacoesButton">Exportar CSV</button>
+            <button type="button" class="btn btn-soft" id="refreshConfirmacoesButton">Atualizar</button>
+            <button type="button" class="btn btn-outline-dark" id="clearConfirmacoesFiltersButton">Limpar filtros</button>
+          </div>
         </div>
 
-        <div class="confirmacoes-toolbar">
+        <div class="toolbar-grid toolbar-grid-three">
           <div class="form-group toolbar-field">
             <label for="confirmacoesSearchInput">Pesquisar nome</label>
-            <input
-              type="text"
-              id="confirmacoesSearchInput"
-              placeholder="Digite nome ou telefone"
-            />
+            <input type="text" id="confirmacoesSearchInput" placeholder="Digite nome ou telefone" />
           </div>
 
           <div class="form-group toolbar-field">
@@ -280,10 +287,17 @@
       </section>
 
       <section class="panel-block">
-        <div class="block-header">
+        <div class="section-top section-top-between">
           <div>
             <p class="tag">Reservas</p>
             <h2>Quem escolheu os presentes</h2>
+            <p class="section-description">
+              Veja quem reservou os presentes e gerencie as reservas.
+            </p>
+          </div>
+
+          <div class="inline-actions">
+            <button type="button" class="btn btn-soft" id="refreshReservasButton">Atualizar</button>
           </div>
         </div>
 
@@ -320,9 +334,7 @@
           <h2>Ajustar dados do convidado</h2>
         </div>
 
-        <button type="button" class="modal-close-button" id="closeConfirmacaoModal">
-          ×
-        </button>
+        <button type="button" class="modal-close-button" id="closeConfirmacaoModal">×</button>
       </div>
 
       <form id="editConfirmacaoForm" class="modal-form">
@@ -364,7 +376,7 @@
           <div id="editAcompanhantesFields" class="edit-acompanhantes-fields"></div>
         </div>
 
-        <div class="modal-actions">
+        <div class="form-actions">
           <button type="submit" class="btn btn-primary" id="saveConfirmacaoButton">
             Salvar alterações
           </button>
