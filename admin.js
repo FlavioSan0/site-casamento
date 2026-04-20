@@ -83,6 +83,24 @@ let currentConfirmacoes = [];
 let currentReservas = [];
 let deleteAction = null;
 
+function formatPhoneBR(value) {
+  const digits = String(value || "").replace(/\D/g, "").slice(0, 11);
+
+  if (digits.length <= 2) {
+    return digits ? `(${digits}` : "";
+  }
+
+  if (digits.length <= 6) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  }
+
+  if (digits.length <= 10) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  }
+
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+}
+
 async function checkSession() {
   const { data, error } = await supabaseClient.auth.getSession();
 
@@ -350,7 +368,7 @@ function openConfirmacaoModal(item) {
 
   editConfirmacaoId.value = item.id;
   editConfirmacaoNome.value = item.nome || "";
-  editConfirmacaoTelefone.value = item.telefone || "";
+  editConfirmacaoTelefone.value = formatPhoneBR(item.telefone || "");
   editConfirmacaoAcompanhantes.value = acompanhantes;
   editConfirmacaoPresenca.value = item.presenca || "";
   editConfirmacaoObservacoes.value = item.observacoes || "";
@@ -479,6 +497,16 @@ function exportConfirmacoesCsv() {
 if (giftValorInput) {
   giftValorInput.addEventListener("blur", () => {
     giftValorInput.value = formatGiftValue(giftValorInput.value);
+  });
+}
+
+if (editConfirmacaoTelefone) {
+  editConfirmacaoTelefone.addEventListener("input", () => {
+    editConfirmacaoTelefone.value = formatPhoneBR(editConfirmacaoTelefone.value);
+  });
+
+  editConfirmacaoTelefone.addEventListener("blur", () => {
+    editConfirmacaoTelefone.value = formatPhoneBR(editConfirmacaoTelefone.value);
   });
 }
 
@@ -614,7 +642,7 @@ if (editConfirmacaoForm) {
 
     const id = Number(editConfirmacaoId.value);
     const nome = editConfirmacaoNome.value.trim();
-    const telefone = editConfirmacaoTelefone.value.trim();
+    const telefone = formatPhoneBR(editConfirmacaoTelefone.value.trim());
     let acompanhantes = Number(editConfirmacaoAcompanhantes.value || 0);
     const presenca = editConfirmacaoPresenca.value;
     const observacoes = editConfirmacaoObservacoes.value.trim();

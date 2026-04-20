@@ -48,12 +48,41 @@ function updateCountdown() {
   secondsEl.textContent = String(seconds).padStart(2, "0");
 }
 
+function formatPhoneBR(value) {
+  const digits = String(value || "").replace(/\D/g, "").slice(0, 11);
+
+  if (digits.length <= 2) {
+    return digits ? `(${digits}` : "";
+  }
+
+  if (digits.length <= 6) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  }
+
+  if (digits.length <= 10) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  }
+
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+}
+
 updateCountdown();
 setInterval(updateCountdown, 1000);
 
 const acompanhantesInput = document.getElementById("acompanhantes");
 const acompanhantesNomesWrapper = document.getElementById("acompanhantesNomesWrapper");
 const acompanhantesNomesFields = document.getElementById("acompanhantesNomesFields");
+const telefoneInput = document.getElementById("telefone");
+
+if (telefoneInput) {
+  telefoneInput.addEventListener("input", () => {
+    telefoneInput.value = formatPhoneBR(telefoneInput.value);
+  });
+
+  telefoneInput.addEventListener("blur", () => {
+    telefoneInput.value = formatPhoneBR(telefoneInput.value);
+  });
+}
 
 function renderAcompanhantesFields() {
   if (!acompanhantesInput || !acompanhantesNomesWrapper || !acompanhantesNomesFields) return;
@@ -113,7 +142,7 @@ if (rsvpForm) {
     }
 
     const nome = document.getElementById("nome").value.trim();
-    const telefone = document.getElementById("telefone").value.trim();
+    const telefone = formatPhoneBR(document.getElementById("telefone").value.trim());
     const acompanhantesValor = document.getElementById("acompanhantes").value.trim();
     const presenca = document.getElementById("presenca").value;
     const observacoes = document.getElementById("observacoes").value.trim();
