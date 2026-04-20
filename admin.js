@@ -300,7 +300,10 @@ function formatAcompanhantesNames(item) {
 function renderEditAcompanhantesFields(names = [], quantidade = 0) {
   if (!editAcompanhantesWrapper || !editAcompanhantesFields) return;
 
-  const total = Number(quantidade || 0);
+  let total = Number(quantidade || 0);
+
+  if (Number.isNaN(total) || total < 0) total = 0;
+  if (total > 4) total = 4;
 
   if (!total || total <= 0) {
     editAcompanhantesWrapper.classList.add("hidden");
@@ -333,16 +336,17 @@ function openConfirmacaoModal(item) {
   if (!confirmacaoModalBackdrop) return;
 
   const names = getAcompanhantesNames(item);
+  const acompanhantes = Math.min(Number(item.acompanhantes || 0), 4);
 
   editConfirmacaoId.value = item.id;
   editConfirmacaoNome.value = item.nome || "";
   editConfirmacaoTelefone.value = item.telefone || "";
-  editConfirmacaoAcompanhantes.value = Number(item.acompanhantes || 0);
+  editConfirmacaoAcompanhantes.value = acompanhantes;
   editConfirmacaoPresenca.value = item.presenca || "";
   editConfirmacaoObservacoes.value = item.observacoes || "";
   editConfirmacaoMessage.textContent = "";
 
-  renderEditAcompanhantesFields(names, Number(item.acompanhantes || 0));
+  renderEditAcompanhantesFields(names, acompanhantes);
   confirmacaoModalBackdrop.classList.remove("hidden");
 }
 
@@ -496,9 +500,17 @@ if (exportConfirmacoesButton) {
 
 if (editConfirmacaoAcompanhantes) {
   editConfirmacaoAcompanhantes.addEventListener("input", () => {
-    const total = Number(editConfirmacaoAcompanhantes.value || 0);
+    let total = Number(editConfirmacaoAcompanhantes.value || 0);
+
+    if (Number.isNaN(total) || total < 0) total = 0;
+    if (total > 4) {
+      total = 4;
+      editConfirmacaoAcompanhantes.value = "4";
+    }
+
     const currentNames = Array.from(document.querySelectorAll(".edit-acompanhante-nome-input"))
       .map((input) => input.value.trim());
+
     renderEditAcompanhantesFields(currentNames, total);
   });
 }
@@ -555,7 +567,7 @@ if (editConfirmacaoForm) {
     const id = Number(editConfirmacaoId.value);
     const nome = editConfirmacaoNome.value.trim();
     const telefone = editConfirmacaoTelefone.value.trim();
-    const acompanhantes = Number(editConfirmacaoAcompanhantes.value || 0);
+    let acompanhantes = Number(editConfirmacaoAcompanhantes.value || 0);
     const presenca = editConfirmacaoPresenca.value;
     const observacoes = editConfirmacaoObservacoes.value.trim();
 
@@ -573,6 +585,12 @@ if (editConfirmacaoForm) {
 
     if (Number.isNaN(acompanhantes) || acompanhantes < 0) {
       editConfirmacaoMessage.textContent = "Informe uma quantidade válida de acompanhantes.";
+      editConfirmacaoMessage.style.color = "#800000";
+      return;
+    }
+
+    if (acompanhantes > 4) {
+      editConfirmacaoMessage.textContent = "O limite é de até 4 acompanhantes por confirmação.";
       editConfirmacaoMessage.style.color = "#800000";
       return;
     }

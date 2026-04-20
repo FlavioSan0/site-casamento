@@ -39,11 +39,11 @@ select {
 }
 
 .desktop-only {
-  display: block;
+  display: block !important;
 }
 
 .mobile-only {
-  display: none;
+  display: none !important;
 }
 
 .admin-page {
@@ -692,7 +692,7 @@ tbody td {
   }
 
   .mobile-only {
-    display: block;
+    display: block !important;
   }
 
   .table-wrapper {

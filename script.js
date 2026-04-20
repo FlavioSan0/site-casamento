@@ -58,9 +58,15 @@ const acompanhantesNomesFields = document.getElementById("acompanhantesNomesFiel
 function renderAcompanhantesFields() {
   if (!acompanhantesInput || !acompanhantesNomesWrapper || !acompanhantesNomesFields) return;
 
-  const quantidade = Number(acompanhantesInput.value || 0);
+  let quantidade = Number(acompanhantesInput.value || 0);
 
-  if (!quantidade || quantidade <= 0) {
+  if (Number.isNaN(quantidade) || quantidade < 0) quantidade = 0;
+  if (quantidade > 4) {
+    quantidade = 4;
+    acompanhantesInput.value = "4";
+  }
+
+  if (quantidade <= 0) {
     acompanhantesNomesWrapper.classList.add("hidden");
     acompanhantesNomesFields.innerHTML = "";
     return;
@@ -93,22 +99,6 @@ const rsvpForm = document.getElementById("rsvpForm");
 const formMessage = document.getElementById("formMessage");
 const submitRsvpButton = document.getElementById("submitRsvpButton");
 
-async function getCurrentRoleLabel() {
-  if (!supabaseClient) return "sem cliente";
-
-  try {
-    const { data, error } = await supabaseClient.auth.getSession();
-    if (error) {
-      console.error("Erro ao ler sessão:", error);
-      return "erro ao ler sessão";
-    }
-    return data?.session ? "authenticated" : "anon";
-  } catch (error) {
-    console.error("Erro inesperado ao ler sessão:", error);
-    return "erro inesperado";
-  }
-}
-
 if (rsvpForm) {
   rsvpForm.addEventListener("submit", async function (event) {
     event.preventDefault();
@@ -128,7 +118,7 @@ if (rsvpForm) {
     const presenca = document.getElementById("presenca").value;
     const observacoes = document.getElementById("observacoes").value.trim();
 
-    const acompanhantes = acompanhantesValor === "" ? 0 : Number(acompanhantesValor);
+    let acompanhantes = acompanhantesValor === "" ? 0 : Number(acompanhantesValor);
 
     if (!nome || !presenca) {
       if (formMessage) {
@@ -141,6 +131,14 @@ if (rsvpForm) {
     if (Number.isNaN(acompanhantes) || acompanhantes < 0) {
       if (formMessage) {
         formMessage.textContent = "Informe uma quantidade válida de acompanhantes.";
+        formMessage.style.color = "#800000";
+      }
+      return;
+    }
+
+    if (acompanhantes > 4) {
+      if (formMessage) {
+        formMessage.textContent = "O limite é de até 4 acompanhantes por confirmação.";
         formMessage.style.color = "#800000";
       }
       return;
@@ -180,19 +178,13 @@ if (rsvpForm) {
     };
 
     try {
-      const roleLabel = await getCurrentRoleLabel();
-      console.log("Tentando enviar confirmação com role:", roleLabel);
-      console.log("Payload enviado:", payload);
-
       const { error } = await supabaseClient
-      .from("confirmacoes")
-      .insert([payload]);
+        .from("confirmacoes")
+        .insert([payload]);
 
-        if (error) {
+      if (error) {
         throw error;
       }
-
-console.log("Confirmação salva com sucesso");
 
       if (formMessage) {
         formMessage.textContent = "Confirmação enviada com sucesso. Obrigado!";
@@ -244,9 +236,7 @@ async function loadGifts() {
       .select("*")
       .order("id", { ascending: true });
 
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
 
     if (!data || data.length === 0) {
       giftGrid.innerHTML = '<p class="gift-empty">Nenhum presente cadastrado no momento.</p>';
@@ -369,9 +359,7 @@ function bindGiftButtons() {
           p_reservado_por: reservadoPor,
         });
 
-        if (error) {
-          throw error;
-        }
+        if (error) throw error;
 
         await loadGifts();
       } catch (error) {
