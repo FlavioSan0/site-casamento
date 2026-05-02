@@ -893,3 +893,22 @@ tbody tr:hover {
     height: 72px;
   }
 }
+
+textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px 16px;
+  outline: none;
+  color: var(--navy);
+  background: var(--white);
+  transition: 0.2s ease;
+  resize: vertical;
+  min-height: 120px;
+  font: inherit;
+}
+
+textarea:focus {
+  border-color: rgba(128, 0, 0, 0.45);
+  box-shadow: 0 0 0 4px rgba(128, 0, 0, 0.06);
+}

@@ -88,6 +88,47 @@
       <section class="panel-block">
         <div class="section-top">
           <div>
+            <p class="tag">Configurações do site</p>
+            <h2>Confirmação de presença</h2>
+            <p class="section-description">
+              Defina a mensagem exibida após o envio do RSVP e a data limite para confirmação.
+            </p>
+          </div>
+        </div>
+
+        <form id="siteSettingsForm" class="gift-form">
+          <div class="gift-form-grid">
+            <div class="form-group">
+              <label for="dataLimiteConfirmacao">Data limite para confirmação</label>
+              <input type="date" id="dataLimiteConfirmacao" />
+            </div>
+
+            <div class="form-group form-group-full">
+              <label for="mensagemConfirmacao">Mensagem de sucesso após confirmação</label>
+              <textarea
+                id="mensagemConfirmacao"
+                rows="5"
+                placeholder="Digite a mensagem que será exibida ao convidado após a confirmação."
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="saveSiteSettingsButton">
+              Salvar configurações
+            </button>
+            <button type="button" class="btn btn-soft" id="refreshSiteSettingsButton">
+              Recarregar configurações
+            </button>
+          </div>
+
+          <p id="siteSettingsMessage" class="message"></p>
+        </form>
+      </section>
+
+      <section class="panel-block">
+        <div class="section-top">
+          <div>
             <p class="tag">Cadastro</p>
             <h2>Lançar presentes</h2>
             <p class="section-description">
@@ -348,7 +389,13 @@
 
           <div class="form-group">
             <label for="editConfirmacaoTelefone">Telefone</label>
-            <input type="tel" id="editConfirmacaoTelefone" inputmode="numeric" maxlength="15" placeholder="(84) 99999-9999" />
+            <input
+              type="tel"
+              id="editConfirmacaoTelefone"
+              inputmode="numeric"
+              maxlength="15"
+              placeholder="(84) 99999-9999"
+            />
           </div>
 
           <div class="form-group">

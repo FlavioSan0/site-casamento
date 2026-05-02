@@ -21,6 +21,13 @@ const refreshReservasButton = document.getElementById("refreshReservasButton");
 const clearGiftFiltersButton = document.getElementById("clearGiftFiltersButton");
 const clearConfirmacoesFiltersButton = document.getElementById("clearConfirmacoesFiltersButton");
 
+const siteSettingsForm = document.getElementById("siteSettingsForm");
+const dataLimiteConfirmacao = document.getElementById("dataLimiteConfirmacao");
+const mensagemConfirmacao = document.getElementById("mensagemConfirmacao");
+const siteSettingsMessage = document.getElementById("siteSettingsMessage");
+const saveSiteSettingsButton = document.getElementById("saveSiteSettingsButton");
+const refreshSiteSettingsButton = document.getElementById("refreshSiteSettingsButton");
+
 const giftForm = document.getElementById("giftForm");
 const giftFormMessage = document.getElementById("giftFormMessage");
 const giftSubmitButton = document.getElementById("giftSubmitButton");
@@ -86,18 +93,9 @@ let deleteAction = null;
 function formatPhoneBR(value) {
   const digits = String(value || "").replace(/\D/g, "").slice(0, 11);
 
-  if (digits.length <= 2) {
-    return digits ? `(${digits}` : "";
-  }
-
-  if (digits.length <= 6) {
-    return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
-  }
-
-  if (digits.length <= 10) {
-    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
-  }
-
+  if (digits.length <= 2) return digits ? `(${digits}` : "";
+  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
 }
 
@@ -134,6 +132,24 @@ function setMessage(element, text, color = "") {
   element.style.color = color;
 }
 
+async function loadSiteSettings() {
+  try {
+    const { data, error } = await supabaseClient
+      .from("configuracoes_site")
+      .select("*")
+      .eq("id", 1)
+      .single();
+
+    if (error) throw error;
+
+    dataLimiteConfirmacao.value = data?.data_limite_confirmacao || "";
+    mensagemConfirmacao.value = data?.mensagem_confirmacao || "";
+  } catch (error) {
+    console.error("Erro ao carregar configurações do site:", error);
+    setMessage(siteSettingsMessage, "Não foi possível carregar as configurações do site.", "#800000");
+  }
+}
+
 function updateGiftQuantityVisibility() {
   if (!giftUsaCotas || !giftQuantidadeWrapper || !giftQuantidadeTotal) return;
 
@@ -149,14 +165,10 @@ function updateGiftQuantityVisibility() {
 
 function formatGiftValue(value) {
   if (!value) return "";
-
   const trimmed = value.trim();
   if (!trimmed) return "";
 
-  if (/^r\$/i.test(trimmed)) {
-    return trimmed.replace(/^r\$\s*/i, "R$ ");
-  }
-
+  if (/^r\$/i.test(trimmed)) return trimmed.replace(/^r\$\s*/i, "R$ ");
   if (/^\d+(,\d{1,2})?$/.test(trimmed) || /^\d+(\.\d{1,2})?$/.test(trimmed)) {
     return `R$ ${trimmed.replace(".", ",")}`;
   }
@@ -183,11 +195,8 @@ function previewGiftImageFromUrl(url) {
 
 function previewGiftImageFromFile(file) {
   if (!file) {
-    if (giftImagemAtual.value) {
-      previewGiftImageFromUrl(giftImagemAtual.value);
-    } else {
-      previewGiftImageFromUrl("");
-    }
+    if (giftImagemAtual.value) previewGiftImageFromUrl(giftImagemAtual.value);
+    else previewGiftImageFromUrl("");
     return;
   }
 
@@ -243,9 +252,7 @@ async function compressGiftImage(file) {
 
   const ctx = canvas.getContext("2d");
 
-  if (!ctx) {
-    throw new Error("Não foi possível preparar a compressão da imagem.");
-  }
+  if (!ctx) throw new Error("Não foi possível preparar a compressão da imagem.");
 
   ctx.drawImage(image, 0, 0, targetWidth, targetHeight);
 
@@ -329,11 +336,10 @@ function renderEditAcompanhantesFields(names = [], quantidade = 0) {
   if (!editAcompanhantesWrapper || !editAcompanhantesFields) return;
 
   let total = Number(quantidade || 0);
-
   if (Number.isNaN(total) || total < 0) total = 0;
   if (total > 4) total = 4;
 
-  if (!total || total <= 0) {
+  if (!total) {
     editAcompanhantesWrapper.classList.add("hidden");
     editAcompanhantesFields.innerHTML = "";
     return;
@@ -441,7 +447,6 @@ function applyConfirmacoesFilters() {
 
     if (presencaValue === "confirmados" && !confirmou) return false;
     if (presencaValue === "nao_confirmados" && confirmou) return false;
-
     if (acompanhantesValue === "com_acompanhantes" && qtdAcompanhantes <= 0) return false;
     if (acompanhantesValue === "sem_acompanhantes" && qtdAcompanhantes > 0) return false;
 
@@ -454,7 +459,6 @@ function applyConfirmacoesFilters() {
 
 function exportConfirmacoesCsv() {
   const filtered = applyConfirmacoesFilters();
-
   if (!filtered.length) return;
 
   const headers = [
@@ -566,6 +570,10 @@ if (refreshReservasButton) {
   refreshReservasButton.addEventListener("click", loadReservas);
 }
 
+if (refreshSiteSettingsButton) {
+  refreshSiteSettingsButton.addEventListener("click", loadSiteSettings);
+}
+
 if (clearGiftFiltersButton) {
   clearGiftFiltersButton.addEventListener("click", clearGiftFilters);
 }
@@ -588,6 +596,39 @@ if (editConfirmacaoAcompanhantes) {
       .map((input) => input.value.trim());
 
     renderEditAcompanhantesFields(currentNames, total);
+  });
+}
+
+if (siteSettingsForm) {
+  siteSettingsForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const payload = {
+      data_limite_confirmacao: dataLimiteConfirmacao.value || null,
+      mensagem_confirmacao: mensagemConfirmacao.value.trim() || null,
+    };
+
+    saveSiteSettingsButton.disabled = true;
+    saveSiteSettingsButton.textContent = "Salvando...";
+    setMessage(siteSettingsMessage, "");
+
+    try {
+      const { error } = await supabaseClient
+        .from("configuracoes_site")
+        .update(payload)
+        .eq("id", 1);
+
+      if (error) throw error;
+
+      setMessage(siteSettingsMessage, "Configurações salvas com sucesso.", "#355b46");
+      await loadSiteSettings();
+    } catch (error) {
+      console.error("Erro ao salvar configurações do site:", error);
+      setMessage(siteSettingsMessage, error?.message || "Não foi possível salvar as configurações.", "#800000");
+    } finally {
+      saveSiteSettingsButton.disabled = false;
+      saveSiteSettingsButton.textContent = "Salvar configurações";
+    }
   });
 }
 
@@ -630,9 +671,7 @@ if (confirmDeleteButton) {
 
 if (deleteModalBackdrop) {
   deleteModalBackdrop.addEventListener("click", (event) => {
-    if (event.target === deleteModalBackdrop) {
-      closeDeleteModal();
-    }
+    if (event.target === deleteModalBackdrop) closeDeleteModal();
   });
 }
 
@@ -697,10 +736,7 @@ if (editConfirmacaoForm) {
         .select();
 
       if (error) throw error;
-
-      if (!data || data.length === 0) {
-        throw new Error("Nenhum registro foi atualizado.");
-      }
+      if (!data || data.length === 0) throw new Error("Nenhum registro foi atualizado.");
 
       setMessage(editConfirmacaoMessage, "Confirmação atualizada com sucesso.", "#355b46");
       await loadConfirmacoes();
@@ -841,7 +877,6 @@ if (giftForm) {
           .eq("id", editId);
 
         if (error) throw error;
-
         setMessage(giftFormMessage, "Presente atualizado com sucesso.", "#355b46");
       } else {
         const { error } = await supabaseClient.from("presentes").insert([
@@ -858,7 +893,6 @@ if (giftForm) {
         ]);
 
         if (error) throw error;
-
         setMessage(giftFormMessage, "Presente cadastrado com sucesso.", "#355b46");
       }
 
@@ -870,15 +904,18 @@ if (giftForm) {
     } finally {
       giftSubmitButton.disabled = false;
       giftSubmitButton.textContent = giftEditId.value ? "Salvar alterações" : "Cadastrar presente";
-      if (!giftEditId.value) {
-        giftSubmitButton.textContent = "Cadastrar presente";
-      }
+      if (!giftEditId.value) giftSubmitButton.textContent = "Cadastrar presente";
     }
   });
 }
 
 async function loadDashboardData() {
-  await Promise.all([loadConfirmacoes(), loadPresentes(), loadReservas()]);
+  await Promise.all([
+    loadSiteSettings(),
+    loadConfirmacoes(),
+    loadPresentes(),
+    loadReservas()
+  ]);
 }
 
 async function loadConfirmacoes() {
@@ -1206,7 +1243,6 @@ function bindGiftButtonsAdmin() {
             .eq("id", gift.id);
 
           if (error) throw error;
-
           await loadPresentes();
           await loadReservas();
         }
@@ -1311,7 +1347,6 @@ function bindReservaButtons() {
             .eq("id", reserva.id);
 
           if (error) throw error;
-
           await loadReservas();
           await loadPresentes();
         }
@@ -1355,10 +1390,8 @@ function updatePresentesStats(presentes) {
 
 function formatDate(value) {
   if (!value) return "-";
-
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "-";
-
   return date.toLocaleString("pt-BR");
 }
 

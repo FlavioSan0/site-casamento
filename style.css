@@ -1684,4 +1684,12 @@ textarea {
   gap: 14px;
 } 
 
+.deadline-info {
+  margin-top: 8px;
+  margin-bottom: 16px;
+  color: #08265e;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
 }

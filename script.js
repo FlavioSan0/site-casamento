@@ -2,6 +2,10 @@ const SUPABASE_URL = "https://zmomnbtqxttlgpxdvmzr.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_doB-Z-J7ingNc--jiPHSyQ__0HY95qI";
 
 let supabaseClient = null;
+let siteSettings = {
+  mensagem_confirmacao: "Confirmação enviada com sucesso. Obrigado!",
+  data_limite_confirmacao: null,
+};
 
 if (!window.supabase) {
   console.error("Supabase JS não foi carregado. Verifique o script CDN no index.html.");
@@ -51,19 +55,80 @@ function updateCountdown() {
 function formatPhoneBR(value) {
   const digits = String(value || "").replace(/\D/g, "").slice(0, 11);
 
-  if (digits.length <= 2) {
-    return digits ? `(${digits}` : "";
-  }
-
-  if (digits.length <= 6) {
-    return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
-  }
-
-  if (digits.length <= 10) {
-    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
-  }
-
+  if (digits.length <= 2) return digits ? `(${digits}` : "";
+  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+}
+
+function formatDateBR(dateString) {
+  if (!dateString) return "";
+  const date = new Date(`${dateString}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("pt-BR");
+}
+
+function isDeadlineExpired(dateString) {
+  if (!dateString) return false;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const limitDate = new Date(`${dateString}T00:00:00`);
+  if (Number.isNaN(limitDate.getTime())) return false;
+
+  return today > limitDate;
+}
+
+async function loadSiteSettings() {
+  if (!supabaseClient) return;
+
+  try {
+    const { data, error } = await supabaseClient
+      .from("configuracoes_site")
+      .select("*")
+      .eq("id", 1)
+      .single();
+
+    if (error) throw error;
+
+    siteSettings = {
+      mensagem_confirmacao:
+        data?.mensagem_confirmacao ||
+        "Confirmação enviada com sucesso. Obrigado!",
+      data_limite_confirmacao: data?.data_limite_confirmacao || null,
+    };
+
+    renderDeadlineInfo();
+  } catch (error) {
+    console.error("Erro ao carregar configurações do site:", error);
+  }
+}
+
+function renderDeadlineInfo() {
+  const deadlineInfo = document.getElementById("deadlineInfo");
+  const submitRsvpButton = document.getElementById("submitRsvpButton");
+
+  if (!deadlineInfo) return;
+
+  if (siteSettings.data_limite_confirmacao) {
+    const formattedDate = formatDateBR(siteSettings.data_limite_confirmacao);
+
+    if (isDeadlineExpired(siteSettings.data_limite_confirmacao)) {
+      deadlineInfo.textContent = `O prazo para confirmação encerrou em ${formattedDate}.`;
+      deadlineInfo.style.color = "#800000";
+
+      if (submitRsvpButton) {
+        submitRsvpButton.disabled = true;
+        submitRsvpButton.textContent = "Prazo encerrado";
+      }
+    } else {
+      deadlineInfo.textContent = `Confirme sua presença até ${formattedDate}.`;
+      deadlineInfo.style.color = "#08265e";
+    }
+  } else {
+    deadlineInfo.textContent = "";
+  }
 }
 
 updateCountdown();
@@ -141,6 +206,14 @@ if (rsvpForm) {
       return;
     }
 
+    if (siteSettings.data_limite_confirmacao && isDeadlineExpired(siteSettings.data_limite_confirmacao)) {
+      if (formMessage) {
+        formMessage.textContent = `O prazo para confirmação já foi encerrado em ${formatDateBR(siteSettings.data_limite_confirmacao)}.`;
+        formMessage.style.color = "#800000";
+      }
+      return;
+    }
+
     const nome = document.getElementById("nome").value.trim();
     const telefone = formatPhoneBR(document.getElementById("telefone").value.trim());
     const acompanhantesValor = document.getElementById("acompanhantes").value.trim();
@@ -211,12 +284,12 @@ if (rsvpForm) {
         .from("confirmacoes")
         .insert([payload]);
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       if (formMessage) {
-        formMessage.textContent = "Confirmação enviada com sucesso. Obrigado!";
+        formMessage.textContent =
+          siteSettings.mensagem_confirmacao ||
+          "Confirmação enviada com sucesso. Obrigado!";
         formMessage.style.color = "#355b46";
       }
 
@@ -239,7 +312,7 @@ if (rsvpForm) {
         formMessage.style.color = "#800000";
       }
     } finally {
-      if (submitRsvpButton) {
+      if (submitRsvpButton && !isDeadlineExpired(siteSettings.data_limite_confirmacao)) {
         submitRsvpButton.disabled = false;
         submitRsvpButton.textContent = "Enviar confirmação";
       }
@@ -407,6 +480,7 @@ function bindGiftButtons() {
   });
 }
 
+loadSiteSettings();
 loadGifts();
 
 const copyPixButton = document.getElementById("copyPixButton");
