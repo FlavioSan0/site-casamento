@@ -63,8 +63,10 @@ function formatPhoneBR(value) {
 
 function formatDateBR(dateString) {
   if (!dateString) return "";
+
   const date = new Date(`${dateString}T00:00:00`);
   if (Number.isNaN(date.getTime())) return "";
+
   return date.toLocaleDateString("pt-BR");
 }
 
@@ -115,19 +117,66 @@ function renderDeadlineInfo() {
     const formattedDate = formatDateBR(siteSettings.data_limite_confirmacao);
 
     if (isDeadlineExpired(siteSettings.data_limite_confirmacao)) {
-      deadlineInfo.textContent = `O prazo para confirmação encerrou em ${formattedDate}.`;
-      deadlineInfo.style.color = "#800000";
+      deadlineInfo.innerHTML = `
+        <span class="deadline-badge deadline-badge-closed">Prazo encerrado</span>
+        <span class="deadline-text">
+          As confirmações foram encerradas em <strong>${formattedDate}</strong>.
+        </span>
+      `;
+      deadlineInfo.classList.add("deadline-info-closed");
+      deadlineInfo.classList.remove("deadline-info-active");
 
       if (submitRsvpButton) {
         submitRsvpButton.disabled = true;
         submitRsvpButton.textContent = "Prazo encerrado";
       }
     } else {
-      deadlineInfo.textContent = `Confirme sua presença até ${formattedDate}.`;
-      deadlineInfo.style.color = "#08265e";
+      deadlineInfo.innerHTML = `
+        <span class="deadline-badge">Confirmação</span>
+        <span class="deadline-text">
+          Confirme sua presença até <strong>${formattedDate}</strong>.
+        </span>
+      `;
+      deadlineInfo.classList.add("deadline-info-active");
+      deadlineInfo.classList.remove("deadline-info-closed");
     }
   } else {
     deadlineInfo.textContent = "";
+    deadlineInfo.classList.remove("deadline-info-active", "deadline-info-closed");
+  }
+}
+
+function openSuccessPopup(message) {
+  const successPopupOverlay = document.getElementById("successPopupOverlay");
+  const successPopupText = document.getElementById("successPopupText");
+
+  if (!successPopupOverlay || !successPopupText) return;
+
+  successPopupText.textContent =
+    message || "Confirmação enviada com sucesso. Obrigado!";
+
+  successPopupOverlay.classList.remove("hidden");
+  successPopupOverlay.setAttribute("aria-hidden", "false");
+  document.body.classList.add("popup-open");
+}
+
+function closeSuccessPopupModal() {
+  const successPopupOverlay = document.getElementById("successPopupOverlay");
+  if (!successPopupOverlay) return;
+
+  successPopupOverlay.classList.add("hidden");
+  successPopupOverlay.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("popup-open");
+}
+
+function goToPresentesSection() {
+  const presentesSection = document.getElementById("presentes");
+  closeSuccessPopupModal();
+
+  if (presentesSection) {
+    setTimeout(() => {
+      presentesSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 120);
   }
 }
 
@@ -138,6 +187,14 @@ const acompanhantesInput = document.getElementById("acompanhantes");
 const acompanhantesNomesWrapper = document.getElementById("acompanhantesNomesWrapper");
 const acompanhantesNomesFields = document.getElementById("acompanhantesNomesFields");
 const telefoneInput = document.getElementById("telefone");
+
+const rsvpForm = document.getElementById("rsvpForm");
+const formMessage = document.getElementById("formMessage");
+const submitRsvpButton = document.getElementById("submitRsvpButton");
+
+const successPopupOverlay = document.getElementById("successPopupOverlay");
+const closeSuccessPopup = document.getElementById("closeSuccessPopup");
+const successPopupButton = document.getElementById("successPopupButton");
 
 if (telefoneInput) {
   telefoneInput.addEventListener("input", () => {
@@ -189,9 +246,27 @@ if (acompanhantesInput) {
   acompanhantesInput.addEventListener("change", renderAcompanhantesFields);
 }
 
-const rsvpForm = document.getElementById("rsvpForm");
-const formMessage = document.getElementById("formMessage");
-const submitRsvpButton = document.getElementById("submitRsvpButton");
+if (closeSuccessPopup) {
+  closeSuccessPopup.addEventListener("click", closeSuccessPopupModal);
+}
+
+if (successPopupButton) {
+  successPopupButton.addEventListener("click", goToPresentesSection);
+}
+
+if (successPopupOverlay) {
+  successPopupOverlay.addEventListener("click", function (event) {
+    if (event.target === successPopupOverlay) {
+      closeSuccessPopupModal();
+    }
+  });
+}
+
+document.addEventListener("keydown", function (event) {
+  if (event.key === "Escape") {
+    closeSuccessPopupModal();
+  }
+});
 
 if (rsvpForm) {
   rsvpForm.addEventListener("submit", async function (event) {
@@ -206,7 +281,10 @@ if (rsvpForm) {
       return;
     }
 
-    if (siteSettings.data_limite_confirmacao && isDeadlineExpired(siteSettings.data_limite_confirmacao)) {
+    if (
+      siteSettings.data_limite_confirmacao &&
+      isDeadlineExpired(siteSettings.data_limite_confirmacao)
+    ) {
       if (formMessage) {
         formMessage.textContent = `O prazo para confirmação já foi encerrado em ${formatDateBR(siteSettings.data_limite_confirmacao)}.`;
         formMessage.style.color = "#800000";
@@ -287,14 +365,16 @@ if (rsvpForm) {
       if (error) throw error;
 
       if (formMessage) {
-        formMessage.textContent =
-          siteSettings.mensagem_confirmacao ||
-          "Confirmação enviada com sucesso. Obrigado!";
-        formMessage.style.color = "#355b46";
+        formMessage.textContent = "";
       }
 
       rsvpForm.reset();
       renderAcompanhantesFields();
+
+      openSuccessPopup(
+        siteSettings.mensagem_confirmacao ||
+          "Confirmação enviada com sucesso. Obrigado!"
+      );
     } catch (error) {
       console.error("Erro ao enviar confirmação:", error);
 
