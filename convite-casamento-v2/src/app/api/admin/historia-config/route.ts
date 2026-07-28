@@ -1,74 +1,90 @@
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { createAdminClient } from "../../../../lib/supabase/admin";
 import { requireAdminApiUser } from "../../../../lib/supabase/auth";
+import { patchEventConfig } from "../../../../lib/supabase/patch-event-config";
+import {
+  booleanValue,
+  enumValue,
+  nullableText,
+  parsePatchEnvelope,
+  PatchValidationError,
+} from "../../../../lib/utils/config-patch";
 
-type HistoriaConfigPayload = {
-  evento_id: number;
-  historia_ativa: boolean;
-  historia_titulo: string | null;
-  historia_descricao: string | null;
-  historia_modelo_grid: string | null;
-};
+const fields = [
+  "historia_ativa",
+  "historia_titulo",
+  "historia_descricao",
+  "historia_modelo_grid",
+] as const;
 
-function normalizeText(value: string | null | undefined) {
-  const text = String(value || "").trim();
-  return text.length > 0 ? text : null;
-}
-
-function normalizeGrid(value: string | null | undefined) {
-  const allowed = ["editorial", "mosaico", "timeline"];
-  return allowed.includes(String(value)) ? String(value) : "editorial";
-}
-
-export async function POST(request: Request) {
+export async function PATCH(request: Request) {
   const authError = await requireAdminApiUser();
   if (authError) return authError;
 
   try {
-    const body = (await request.json()) as HistoriaConfigPayload;
-
-    const eventoId = Number(body.evento_id);
-
-    if (!eventoId || Number.isNaN(eventoId)) {
-      return NextResponse.json({ error: "Evento inválido." }, { status: 400 });
-    }
-
+    const { eventoId, expectedUpdatedAt, fields: received } =
+      parsePatchEnvelope(await request.json(), fields);
     const supabase = createAdminClient();
+    const { data: evento, error: eventoError } = await supabase
+      .from("eventos")
+      .select("slug")
+      .eq("id", eventoId)
+      .maybeSingle();
 
-    const { error } = await supabase
-      .from("configuracoes_evento")
-      .upsert(
-        {
-          evento_id: eventoId,
-          historia_ativa: !!body.historia_ativa,
-          historia_titulo: normalizeText(body.historia_titulo),
-          historia_descricao: normalizeText(body.historia_descricao),
-          historia_modelo_grid: normalizeGrid(body.historia_modelo_grid),
-        },
-        { onConflict: "evento_id" },
-      );
+    if (eventoError) throw eventoError;
+    if (!evento) {
+      return NextResponse.json({ error: "Evento nÃ£o encontrado." }, { status: 404 });
+    }
 
-    if (error) {
-      console.error("Erro ao salvar configuração da história:", error.message);
+    const patch: Record<string, unknown> = {};
+    for (const [field, value] of Object.entries(received)) {
+      if (field === "historia_ativa") {
+        patch[field] = booleanValue(value, field);
+      } else if (field === "historia_modelo_grid") {
+        patch[field] = enumValue(value, field, [
+          "editorial",
+          "mosaico",
+          "timeline",
+        ]);
+      } else {
+        patch[field] = nullableText(value, field);
+      }
+    }
 
+    const result = await patchEventConfig(
+      supabase,
+      eventoId,
+      patch,
+      expectedUpdatedAt,
+    );
+
+    if (result.conflict) {
       return NextResponse.json(
-        { error: "Não foi possível salvar as configurações da história." },
-        { status: 500 },
+        {
+          error:
+            "A histÃ³ria foi alterada em outra aba. Recarregue antes de salvar novamente.",
+        },
+        { status: 409 },
       );
     }
 
-    return NextResponse.json(
-      {
-        success: true,
-        message: "Configurações da história salvas com sucesso.",
-      },
-      { status: 200 },
-    );
-  } catch (error) {
-    console.error("Erro inesperado ao salvar configuração da história:", error);
+    revalidatePath(`/evento/${evento.slug}`);
+    revalidatePath(`/admin/eventos/${evento.slug}/layout`);
 
+    return NextResponse.json({
+      success: true,
+      message: "ConfiguraÃ§Ãµes da histÃ³ria salvas com sucesso.",
+      configuracoes: result.data,
+    });
+  } catch (error) {
+    if (error instanceof PatchValidationError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    console.error("Erro inesperado ao salvar configuraÃ§Ã£o da histÃ³ria:", error);
     return NextResponse.json(
-      { error: "Erro inesperado ao salvar configuração da história." },
+      { error: "NÃ£o foi possÃ­vel salvar as configuraÃ§Ãµes da histÃ³ria." },
       { status: 500 },
     );
   }

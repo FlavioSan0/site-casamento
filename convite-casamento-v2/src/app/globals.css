@@ -76,6 +76,14 @@ video {
   --theme-accent: #c9a227;
   --theme-bg: #fffaf8;
   --theme-surface: #ffffff;
+
+  /* movimento */
+  --motion-fast: 180ms;
+  --motion-base: 420ms;
+  --motion-slow: 620ms;
+  --motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --motion-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-stagger: 60ms;
 }
 
 /* =========================================================
@@ -160,33 +168,16 @@ video {
   color: #fff;
 }
 
-.primary-link:hover,
-.primary-button:hover,
-.event-button:hover {
-  background: var(--wine-strong);
-  transform: translateY(-1px);
-}
-
 .secondary-button {
   border: 1px solid var(--border-strong);
   background: #fff;
   color: var(--navy);
 }
 
-.secondary-button:hover {
-  background: #f7f8fb;
-  transform: translateY(-1px);
-}
-
 .danger-button {
   border: none;
   background: #b04d4d;
   color: #fff;
-}
-
-.danger-button:hover {
-  background: #983f3f;
-  transform: translateY(-1px);
 }
 
 .primary-button:disabled,
@@ -198,6 +189,29 @@ video {
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .primary-link:hover,
+  .primary-button:hover,
+  .event-button:hover {
+    background: var(--wine-strong);
+    transform: translateY(-1px);
+  }
+
+  .secondary-button:hover {
+    background: #f7f8fb;
+    transform: translateY(-1px);
+  }
+
+  .danger-button:hover {
+    background: #983f3f;
+    transform: translateY(-1px);
+  }
+
+  :is(.primary-link, .primary-button, .secondary-button, .danger-button, .event-button):active {
+    transform: scale(0.99);
+  }
 }
 
 /* =========================================================
@@ -257,12 +271,6 @@ video {
   background: var(--theme-primary);
   color: #ffffff;
   box-shadow: 0 12px 24px color-mix(in srgb, var(--theme-primary) 22%, transparent);
-}
-
-.public-theme-scope .event-button:hover,
-.public-theme-scope .primary-button:hover,
-.public-theme-scope .primary-link:hover {
-  background: color-mix(in srgb, var(--theme-primary) 88%, black);
 }
 
 .public-theme-scope .gift-status--available {
@@ -370,9 +378,8 @@ video {
 }
 
 .hero-media--image {
-  background-size: cover;
-  background-position: center 68%;
-  background-repeat: no-repeat;
+  object-fit: cover;
+  object-position: center 68%;
   transform: scale(1.01);
 }
 
@@ -467,6 +474,24 @@ video {
 
 .public-theme-scope--editorial .hero-section {
   min-height: 100vh;
+}
+
+.public-theme-scope--photographic .hero-section {
+  min-height: 100dvh;
+}
+
+.public-theme-scope--photographic .hero-title {
+  font-size: clamp(3.5rem, 8vw, 7.2rem);
+}
+
+.public-theme-scope--contemporary .hero-section {
+  min-height: 78vh;
+}
+
+.public-theme-scope--contemporary .event-section,
+.public-theme-scope--contemporary .event-location-card,
+.public-theme-scope--contemporary .gift-card-refined {
+  border-radius: 16px;
 }
 
 .public-theme-scope--editorial .hero-title {
@@ -691,6 +716,10 @@ video {
   border: 1px solid rgba(8, 38, 94, 0.08);
   min-height: 220px;
   box-shadow: 0 12px 28px rgba(8, 38, 94, 0.04);
+  cursor: zoom-in;
+  padding: 0;
+  color: inherit;
+  text-align: left;
 }
 
 .gallery-card--featured {
@@ -704,11 +733,6 @@ video {
   transition:
     transform 280ms ease,
     filter 280ms ease;
-}
-
-.gallery-card:hover .gallery-card__image {
-  transform: scale(1.03);
-  filter: saturate(1.02);
 }
 
 /* =========================================================
@@ -800,7 +824,12 @@ video {
   border-radius: 18px;
   padding: 16px 18px;
   outline: none;
-  transition: 0.2s ease;
+  transition:
+    border-color 200ms ease,
+    box-shadow 200ms ease,
+    background-color 200ms ease;
+  min-height: 52px;
+  font-size: 1rem;
 }
 
 .form-field textarea {
@@ -880,6 +909,23 @@ video {
 
 .form-feedback--success {
   color: #355b46;
+}
+
+.field-error {
+  color: #9f1d1d;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.rsvp-gifts-link {
+  display: inline-flex;
+  justify-content: center;
+  min-height: 44px;
+  align-items: center;
+  color: var(--theme-primary);
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 .rsvp-submit-button {
@@ -1191,17 +1237,12 @@ video {
     border-color 220ms ease;
 }
 
-.gift-card-refined:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 16px 36px rgba(8, 38, 94, 0.08);
-  border-color: rgba(8, 38, 94, 0.12);
-}
-
 .gift-card-refined--disabled {
   opacity: 0.92;
 }
 
 .gift-card-refined__image-wrap {
+  position: relative;
   width: 100%;
   aspect-ratio: 16 / 10;
   overflow: hidden;
@@ -1223,10 +1264,6 @@ video {
   height: 100%;
   object-fit: cover;
   transition: transform 260ms ease;
-}
-
-.gift-card-refined:hover .gift-card-refined__image {
-  transform: scale(1.03);
 }
 
 .gift-card-refined__body {
@@ -3022,8 +3059,43 @@ video {
   margin-top: 20px;
 }
 
+.admin-form-fieldset {
+  display: contents;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
 .admin-theme-preview--enhanced {
   margin-top: 22px;
+}
+
+.admin-preview-toolbar {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.admin-preview-toolbar button {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid #dbe1ea;
+  border-radius: 999px;
+  background: #fff;
+  color: #334155;
+  font: inherit;
+  font-weight: 700;
+}
+
+.admin-preview-toolbar button[aria-pressed="true"] {
+  border-color: #163c7a;
+  background: #163c7a;
+  color: #fff;
+}
+
+.admin-theme-preview--mobile .admin-theme-preview__canvas {
+  max-width: 320px;
 }
 
 .admin-theme-preview__box {
@@ -3831,13 +3903,6 @@ video {
     box-shadow 180ms ease;
 }
 
-.event-public-footer__admin-link:hover {
-  transform: translateY(-1px);
-  border-color: rgba(128, 0, 0, 0.34);
-  background: #ffffff;
-  box-shadow: 0 12px 30px rgba(128, 0, 0, 0.1);
-}
-
 @media (max-width: 720px) {
   .event-public-footer {
     padding-bottom: 28px;
@@ -3903,13 +3968,6 @@ video {
   display: block;
   object-fit: cover;
   transition: transform 420ms ease;
-}
-
-.history-editorial-featured:hover .history-moment__image,
-.history-editorial-card:hover .history-moment__image,
-.history-mosaico-card:hover .history-moment__image,
-.history-timeline-card:hover .history-moment__image {
-  transform: scale(1.025);
 }
 
 .history-moment__copy {
@@ -4150,5 +4208,857 @@ video {
 
   .admin-reservation-stats {
     grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================================
+   REFINAMENTO DE EXPERIÊNCIA, MOVIMENTO E ACESSIBILIDADE
+========================================================= */
+.event-motion {
+  display: contents;
+}
+
+.event-motion:not([data-opening-phase="complete"]) .hero-content > * {
+  opacity: 0;
+}
+
+.event-motion[data-hero-entry="after-opening"] .hero-badge,
+.event-motion[data-hero-entry="after-opening"] .hero-title,
+.event-motion[data-hero-entry="after-opening"] .hero-subtitle,
+.event-motion[data-hero-entry="after-opening"] .hero-meta {
+  animation: wedding-hero-reveal var(--motion-slow)
+    var(--motion-ease-emphasized) both;
+}
+
+.event-motion[data-hero-entry="after-opening"] .hero-subtitle {
+  animation-delay: 80ms;
+}
+
+.event-motion[data-hero-entry="after-opening"] .hero-meta {
+  animation-delay: 120ms;
+}
+
+.event-motion[data-hero-entry="returning"] .hero-badge,
+.event-motion[data-hero-entry="returning"] .hero-title,
+.event-motion[data-hero-entry="returning"] .hero-subtitle,
+.event-motion[data-hero-entry="returning"] .hero-meta {
+  animation: wedding-hero-return 420ms var(--motion-ease-standard) both;
+}
+
+.event-motion[data-hero-entry="returning"] .hero-subtitle {
+  animation-delay: 40ms;
+}
+
+.event-motion[data-hero-entry="returning"] .hero-meta {
+  animation-delay: 80ms;
+}
+
+.event-opening {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding:
+    max(24px, env(safe-area-inset-top))
+    max(18px, env(safe-area-inset-right))
+    max(24px, env(safe-area-inset-bottom))
+    max(18px, env(safe-area-inset-left));
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(
+      circle at 50% 38%,
+      color-mix(in srgb, var(--theme-primary, #800000) 70%, white),
+      transparent 44%
+    ),
+    color-mix(in srgb, var(--theme-secondary, #08265e) 78%, #151019);
+  color: #fff;
+  text-align: center;
+}
+
+.event-opening[data-opening-phase="closing"] {
+  animation: wedding-opening-dismiss 340ms var(--motion-ease-standard) forwards;
+  pointer-events: none;
+}
+
+.admin-opening-preview-shell {
+  position: relative;
+  min-height: 520px;
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 24px;
+  background: #081b42;
+}
+
+.event-opening--preview {
+  position: absolute;
+  z-index: 1;
+  min-height: 100%;
+}
+
+.event-opening--preview .wedding-envelope-stage {
+  width: min(360px, 78%);
+}
+
+.admin-opening-preview-thumbnail {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 72px;
+  padding: 14px 16px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 18px;
+  background: #f8fafc;
+  color: #334155;
+}
+
+.admin-opening-preview-thumbnail span {
+  display: block;
+  width: 54px;
+  aspect-ratio: 1.45;
+  border: 1px solid rgba(128, 0, 0, 0.18);
+  background:
+    linear-gradient(34deg, transparent 49%, #dec7be 50%),
+    linear-gradient(-34deg, transparent 49%, #ead7cf 50%),
+    #f2e3dc;
+}
+
+.wedding-envelope-stage {
+  display: grid;
+  justify-items: center;
+  gap: 28px;
+  width: min(430px, 82vw);
+}
+
+.wedding-envelope-scene {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(18px) scale(0.98);
+  perspective: 1000px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.event-opening[data-opening-phase="entering"] .wedding-envelope-scene {
+  animation: wedding-envelope-enter 280ms var(--motion-ease-emphasized)
+    forwards;
+  will-change: opacity, transform;
+}
+
+.event-opening:not([data-opening-phase="checking"]):not(
+    [data-opening-phase="entering"]
+  )
+  .wedding-envelope-scene {
+  opacity: 1;
+  transform: none;
+}
+
+.wedding-envelope {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1.48;
+  transform-style: preserve-3d;
+}
+
+.wedding-envelope__back,
+.wedding-envelope__fold,
+.wedding-envelope__flap,
+.wedding-invitation-card {
+  position: absolute;
+  display: block;
+}
+
+.wedding-envelope__back {
+  inset: 18% 0 0;
+  z-index: 1;
+  border: 1px solid color-mix(in srgb, var(--theme-primary) 20%, transparent);
+  border-radius: 8px 8px 18px 18px;
+  background: color-mix(in srgb, var(--theme-primary) 18%, #ead8cf);
+  box-shadow: 0 26px 70px rgba(7, 10, 20, 0.28);
+}
+
+.wedding-invitation-card {
+  right: 7%;
+  bottom: 7%;
+  left: 7%;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  height: 84%;
+  padding: 22px 18px;
+  border: 1px solid color-mix(in srgb, var(--theme-accent) 34%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--theme-surface, #fff) 30%, #fff);
+  box-shadow: 0 14px 36px rgba(7, 10, 20, 0.16);
+  color: #20242d;
+  transform: translateY(10%) scale(0.985);
+  backface-visibility: hidden;
+}
+
+.wedding-invitation-card__content {
+  display: grid;
+  justify-items: center;
+  gap: 11px;
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.wedding-invitation-card__eyebrow,
+.wedding-invitation-card__date {
+  font-size: clamp(0.66rem, 2.3vw, 0.78rem);
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.wedding-invitation-card__eyebrow {
+  color: color-mix(in srgb, var(--theme-primary, #800000) 80%, #20242d);
+}
+
+.wedding-invitation-card__names {
+  color: #20242d;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.8rem, 7.4vw, 3.2rem);
+  font-weight: 400;
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+
+.wedding-invitation-card__date {
+  color: #555c67;
+  letter-spacing: 0.1em;
+}
+
+.wedding-envelope__fold {
+  inset: 18% 0 0;
+  z-index: 4;
+  background: color-mix(in srgb, var(--theme-primary) 16%, #e5cec4);
+  pointer-events: none;
+}
+
+.wedding-envelope__fold--left {
+  clip-path: polygon(0 0, 56% 52%, 0 100%);
+}
+
+.wedding-envelope__fold--right {
+  clip-path: polygon(100% 0, 44% 52%, 100% 100%);
+}
+
+.wedding-envelope__fold--bottom {
+  z-index: 5;
+  clip-path: polygon(0 100%, 50% 39%, 100% 100%);
+  background: color-mix(in srgb, var(--theme-primary) 13%, #ecd9d0);
+}
+
+.wedding-envelope__flap {
+  top: 18%;
+  right: 0;
+  left: 0;
+  z-index: 6;
+  height: 54%;
+  background: color-mix(in srgb, var(--theme-primary) 22%, #f0ddd4);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  transform: rotateX(0);
+  transform-origin: 50% 0;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  pointer-events: none;
+}
+
+.event-opening[data-opening-phase="opening"] .wedding-envelope__flap {
+  animation: wedding-envelope-flap-open 480ms var(--motion-ease-emphasized)
+    forwards;
+  will-change: transform;
+}
+
+.event-opening:is(
+    [data-opening-phase="revealing"],
+    [data-opening-phase="closing"]
+  )
+  .wedding-envelope__flap {
+  z-index: 1;
+  transform: rotateX(-180deg);
+}
+
+.event-opening[data-opening-phase="revealing"] .wedding-invitation-card {
+  animation: wedding-card-rise 1000ms var(--motion-ease-emphasized) forwards;
+  will-change: transform;
+}
+
+.event-opening[data-opening-phase="revealing"]
+  .wedding-invitation-card__content {
+  animation: wedding-card-content-reveal 520ms 240ms
+    var(--motion-ease-standard) forwards;
+  will-change: opacity, transform;
+}
+
+.event-opening[data-opening-phase="closing"] .wedding-invitation-card {
+  transform: translateY(-39%) scale(1.025);
+}
+
+.event-opening[data-opening-phase="closing"]
+  .wedding-invitation-card__content {
+  opacity: 1;
+  transform: none;
+}
+
+.event-opening__skip {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.86);
+  cursor: pointer;
+  font-size: 0.82rem;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+@keyframes wedding-envelope-enter {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes wedding-envelope-flap-open {
+  to {
+    transform: rotateX(-180deg);
+  }
+}
+
+@keyframes wedding-card-rise {
+  58%,
+  100% {
+    transform: translateY(-39%) scale(1.025);
+  }
+}
+
+@keyframes wedding-card-content-reveal {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes wedding-opening-dismiss {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes wedding-hero-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+@keyframes wedding-hero-return {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.reveal[data-reveal-ready="true"] {
+  opacity: 0;
+  translate: 0 20px;
+  will-change: opacity, translate;
+}
+
+.reveal[data-reveal-visible="true"] {
+  opacity: 1;
+  translate: 0 0;
+  will-change: auto;
+  transition:
+    opacity 620ms ease,
+    translate 620ms ease;
+}
+
+.gallery-grid-refined > .gallery-card:first-child {
+  grid-row: span 2;
+}
+
+.gallery-grid-refined > .gallery-card:not(:first-child) {
+  min-height: 249px;
+}
+
+.gallery-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: max(20px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right))
+    max(20px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
+  background: rgba(6, 10, 18, 0.94);
+  animation: wedding-lightbox-backdrop-in var(--motion-fast)
+    var(--motion-ease-standard) both;
+}
+
+.gallery-lightbox__media {
+  position: relative;
+  width: min(1100px, calc(100vw - 120px));
+  height: min(82dvh, 820px);
+  animation: wedding-lightbox-content-in var(--motion-base)
+    var(--motion-ease-emphasized) both;
+}
+
+.gallery-lightbox__image {
+  object-fit: contain;
+}
+
+.gallery-lightbox__close,
+.gallery-lightbox__nav {
+  position: fixed;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  cursor: pointer;
+  font-size: 2rem;
+}
+
+.gallery-lightbox__close {
+  top: max(18px, env(safe-area-inset-top));
+  right: max(18px, env(safe-area-inset-right));
+}
+
+.gallery-lightbox__nav {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.gallery-lightbox__nav--previous {
+  left: max(18px, env(safe-area-inset-left));
+}
+
+.gallery-lightbox__nav--next {
+  right: max(18px, env(safe-area-inset-right));
+}
+
+.gallery-lightbox__counter {
+  position: fixed;
+  bottom: max(18px, env(safe-area-inset-bottom));
+  color: #fff;
+  font-weight: 700;
+}
+
+@keyframes wedding-lightbox-backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes wedding-lightbox-content-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .public-theme-scope .event-button:hover,
+  .public-theme-scope .primary-button:hover,
+  .public-theme-scope .primary-link:hover {
+    background: color-mix(in srgb, var(--theme-primary) 88%, black);
+  }
+
+  .gallery-card:hover .gallery-card__image {
+    transform: scale(1.03);
+    filter: saturate(1.02);
+  }
+
+  .gift-card-refined:hover {
+    transform: translateY(-2px);
+    border-color: rgba(8, 38, 94, 0.12);
+    box-shadow: 0 16px 36px rgba(8, 38, 94, 0.08);
+  }
+
+  .gift-card-refined:hover .gift-card-refined__image {
+    transform: scale(1.03);
+  }
+
+  .event-public-footer__admin-link:hover {
+    transform: translateY(-1px);
+    border-color: rgba(128, 0, 0, 0.34);
+    background: #ffffff;
+    box-shadow: 0 12px 30px rgba(128, 0, 0, 0.1);
+  }
+
+  .history-editorial-featured:hover .history-moment__image,
+  .history-editorial-card:hover .history-moment__image,
+  .history-mosaico-card:hover .history-moment__image,
+  .history-timeline-card:hover .history-moment__image {
+    transform: scale(1.025);
+  }
+}
+
+.countdown-ended {
+  padding: 12px 4px 4px;
+  color: var(--theme-secondary);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.35rem, 4vw, 2rem);
+  line-height: 1.35;
+  text-align: center;
+}
+
+:where(a, button, input, textarea, select):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--theme-accent, #c9a227) 72%, #163c7a);
+  outline-offset: 3px;
+}
+
+:where(input, textarea, select)[aria-invalid="true"] {
+  border-color: #a62323;
+  box-shadow: 0 0 0 3px rgba(166, 35, 35, 0.1);
+}
+
+.admin-modal-card {
+  max-height: min(90dvh, 920px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.admin-range-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 64px;
+  align-items: center;
+  gap: 14px;
+}
+
+.admin-range-field input {
+  width: 100%;
+  min-height: 44px;
+  accent-color: #980d0d;
+}
+
+.admin-range-field output {
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  border: 1px solid #d6ddeb;
+  border-radius: 14px;
+  background: #fff;
+  color: #0d2f73;
+  font-weight: 800;
+}
+
+.event-public-footer {
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
+}
+
+@media (max-width: 900px) {
+  .gallery-grid-refined {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .gallery-grid-refined > .gallery-card:first-child {
+    grid-column: 1 / -1;
+    grid-row: auto;
+    min-height: min(72vw, 520px);
+  }
+
+  .gallery-grid-refined > .gallery-card:not(:first-child) {
+    min-height: min(48vw, 300px);
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-page-stack,
+  .admin-page-stack > *,
+  .admin-page-stack .event-section,
+  .admin-card {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .admin-page-stack .event-section {
+    width: 100%;
+  }
+
+  .admin-dashboard-hero__actions,
+  .admin-dashboard-hero__actions > a {
+    width: 100%;
+  }
+
+  .admin-dashboard-hero__actions {
+    flex-direction: column;
+  }
+
+  .admin-dashboard-hero__actions .admin-btn {
+    width: 100%;
+  }
+
+  :is(.admin-layout-card-refined__url, .admin-field__hint, .admin-card-header__description) {
+    overflow-wrap: anywhere;
+  }
+
+  .event-shell {
+    width: min(100%, calc(100% - 32px));
+    gap: 18px;
+    margin-bottom: 40px;
+  }
+
+  .event-section {
+    padding: 22px 18px;
+    border-radius: 24px;
+  }
+
+  .section-title,
+  .event-section-title {
+    font-size: clamp(1.8rem, 9vw, 2.45rem);
+    line-height: 1.08;
+    overflow-wrap: anywhere;
+  }
+
+  .section-description,
+  .event-section-description {
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+
+  .hero-section,
+  .public-theme-scope--classic .hero-section,
+  .public-theme-scope--romantic .hero-section,
+  .public-theme-scope--editorial .hero-section {
+    min-height: 78dvh;
+  }
+
+  .public-theme-scope--minimal .hero-section {
+    min-height: 66dvh;
+  }
+
+  .hero-inner {
+    padding: max(96px, env(safe-area-inset-top)) 20px 104px;
+  }
+
+  .hero-title,
+  .public-theme-scope--editorial .hero-title,
+  .public-theme-scope--minimal .hero-title {
+    font-size: clamp(2.65rem, 15vw, 4.5rem);
+    line-height: 0.94;
+    overflow-wrap: anywhere;
+  }
+
+  .hero-subtitle {
+    margin-top: 18px;
+    line-height: 1.6;
+  }
+
+  .hero-meta {
+    margin-top: 22px;
+    gap: 8px;
+  }
+
+  .hero-meta span {
+    min-height: 44px;
+    padding: 0 14px;
+  }
+
+  .countdown-floating,
+  .countdown-floating--top {
+    width: 100%;
+    margin-top: -54px;
+  }
+
+  .countdown-card {
+    padding: 16px 12px;
+    border-radius: 24px;
+  }
+
+  .countdown-grid {
+    gap: 6px;
+  }
+
+  .countdown-item {
+    padding: 16px 4px;
+    border-radius: 15px;
+  }
+
+  .countdown-item strong {
+    font-size: clamp(1.45rem, 8vw, 2rem);
+  }
+
+  .countdown-item span {
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+  }
+
+  .event-info-grid,
+  .event-location-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .event-section--info {
+    padding: 22px 18px;
+    border-radius: 24px;
+  }
+
+  .event-location-card {
+    padding: 18px;
+    border-radius: 20px;
+  }
+
+  .event-location-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+  }
+
+  .gallery-grid-refined {
+    gap: 10px;
+  }
+
+  .gallery-grid-refined > .gallery-card:first-child {
+    min-height: 70vw;
+  }
+
+  .gallery-grid-refined > .gallery-card:not(:first-child) {
+    min-height: 42vw;
+  }
+
+  .gallery-card {
+    border-radius: 18px;
+  }
+
+  .gallery-lightbox__media {
+    width: calc(100vw - 24px);
+    height: 76dvh;
+  }
+
+  .gallery-lightbox__nav {
+    top: auto;
+    bottom: max(18px, env(safe-area-inset-bottom));
+    transform: none;
+  }
+
+  .gallery-lightbox__counter {
+    bottom: calc(max(18px, env(safe-area-inset-bottom)) + 14px);
+  }
+
+  .wedding-envelope-stage {
+    width: min(390px, 88vw);
+    gap: 20px;
+  }
+
+  .wedding-invitation-card {
+    padding: 18px 14px;
+  }
+
+  .wedding-invitation-card__content {
+    gap: 8px;
+  }
+
+  .admin-opening-preview-shell {
+    min-height: 420px;
+  }
+
+  .gift-input,
+  .form-field input,
+  .form-field textarea,
+  .form-field select,
+  .admin-field__control input,
+  .admin-field__control textarea,
+  .admin-field__control select,
+  .admin-finance-search input {
+    font-size: 16px;
+  }
+
+  .admin-modal-overlay {
+    align-items: end;
+    padding: 12px 12px max(12px, env(safe-area-inset-bottom));
+  }
+
+  .admin-modal-card,
+  .admin-modal-card--wide {
+    width: 100%;
+    max-height: 92dvh;
+    border-radius: 24px 24px 18px 18px;
+  }
+
+  .admin-submit-bar {
+    padding-bottom: max(14px, env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 360px) {
+  .admin-overview-metrics,
+  .admin-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-metric-card,
+  .admin-summary-item {
+    overflow-wrap: anywhere;
+  }
+
+  .event-shell {
+    width: min(100%, calc(100% - 24px));
+  }
+
+  .event-section,
+  .event-section--info,
+  .rsvp-section {
+    padding: 20px 16px;
+  }
+
+  .countdown-item span {
+    font-size: 0.56rem;
+  }
+
+  .wedding-envelope-stage {
+    width: 90vw;
+  }
+
+  .wedding-invitation-card__names {
+    font-size: clamp(1.55rem, 8vw, 2rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .event-opening {
+    display: none;
+  }
+
+  .reveal,
+  .reveal[data-reveal-ready="true"],
+  .reveal[data-reveal-visible="true"] {
+    opacity: 1;
+    translate: none;
+    transition: none;
+  }
+
+  .event-motion .hero-content > *,
+  .gallery-lightbox,
+  .gallery-lightbox__media,
+  .gallery-card__image,
+  .gift-card-refined,
+  .gift-card-refined__image,
+  .history-moment__image {
+    opacity: 1;
+    transform: none;
+    animation: none;
+    transition: none;
   }
 }

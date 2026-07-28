@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { AdminSectionHeader } from "./admin-section-header";
 import { AdminBadge } from "./ui/admin-badge";
 import { AdminButton } from "./ui/admin-button";
 import { AdminCard, AdminCardHeader } from "./ui/admin-card";
 import { AdminField } from "./ui/admin-field";
+import { useAdminModal } from "./use-admin-modal";
 
 type Confirmacao = {
   id: number;
@@ -91,6 +92,7 @@ export function ConfirmationsManager({
   const [feedbackType, setFeedbackType] = useState<"success" | "error" | "">("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const modalTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   const sortedConfirmations = useMemo(() => {
     const ordered = [...confirmationList].sort((a, b) => {
@@ -155,23 +157,7 @@ export function ConfirmationsManager({
     resetForm();
   }, [loading, resetForm]);
 
-  useEffect(() => {
-    function handleEscape(event: KeyboardEvent) {
-      if (event.key === "Escape" && !loading) {
-        closeModal();
-      }
-    }
-
-    if (isModalOpen) {
-      document.addEventListener("keydown", handleEscape);
-      document.body.style.overflow = "hidden";
-    }
-
-    return () => {
-      document.removeEventListener("keydown", handleEscape);
-      document.body.style.overflow = "";
-    };
-  }, [isModalOpen, loading, closeModal]);
+  useAdminModal(isModalOpen, closeModal, loading, modalTriggerRef);
 
   function handleChange<K extends keyof ConfirmationFormState>(
     field: K,
@@ -437,7 +423,7 @@ export function ConfirmationsManager({
           rightSlot={
             <div className="admin-finance-search">
               <input
-                type="text"
+                type="search"
                 placeholder="Buscar convidado..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -529,7 +515,11 @@ export function ConfirmationsManager({
                     <AdminButton
                       type="button"
                       variant="secondary"
-                      onClick={() => openEditModal(confirmacao)}
+                      onClick={(event) => {
+                        modalTriggerRef.current = event.currentTarget;
+                        event.currentTarget.focus();
+                        openEditModal(confirmacao);
+                      }}
                       disabled={loading}
                       className="admin-confirmation-card-refined__button"
                     >
@@ -560,11 +550,11 @@ export function ConfirmationsManager({
             if (e.target === e.currentTarget) closeModal();
           }}
         >
-          <div className="admin-modal-card admin-modal-card--wide">
+          <div className="admin-modal-card admin-modal-card--wide" role="dialog" aria-modal="true" aria-labelledby="confirmation-modal-title">
             <div className="admin-modal-header">
               <div className="admin-modal-title-wrap">
                 <AdminBadge>Editar confirmação</AdminBadge>
-                <h3 className="admin-modal-title">Atualizar confirmação</h3>
+                <h3 id="confirmation-modal-title" className="admin-modal-title">Atualizar confirmação</h3>
                 <p className="admin-modal-subtitle">
                   Ajuste os dados do convidado, a presença e os acompanhantes.
                 </p>
@@ -576,6 +566,7 @@ export function ConfirmationsManager({
                 onClick={closeModal}
                 disabled={loading}
                 aria-label="Fechar"
+                autoFocus
               >
                 ×
               </button>
@@ -592,7 +583,9 @@ export function ConfirmationsManager({
                   <AdminField label="Nome" htmlFor="confirmacao_nome">
                     <input
                       id="confirmacao_nome"
-                      type="text"
+                      type="tel"
+                      inputMode="tel"
+                      autoComplete="tel"
                       value={form.nome}
                       onChange={(e) => handleChange("nome", e.target.value)}
                     />

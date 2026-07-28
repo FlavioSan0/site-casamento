@@ -5,6 +5,9 @@ import { AdminBadge } from "./ui/admin-badge";
 import { AdminButton } from "./ui/admin-button";
 import { AdminCard, AdminCardHeader } from "./ui/admin-card";
 import { AdminField } from "./ui/admin-field";
+import { buildChangedPatch } from "../../lib/utils/config-patch";
+import { useUnsavedChanges } from "./use-unsaved-changes";
+import { EventOpening } from "../event/event-opening";
 
 type HeroBackgroundType = "none" | "image" | "video";
 
@@ -20,6 +23,7 @@ type LayoutSettingsPanelProps = {
     hero_background_type: HeroBackgroundType | null;
     hero_background_url: string | null;
     hero_overlay_opacity: number | null;
+    updated_at?: string | null;
   } | null;
 };
 
@@ -34,6 +38,18 @@ type FormState = {
   hero_background_url: string;
   hero_overlay_opacity: string;
 };
+
+const layoutFields = [
+  "cor_primaria",
+  "cor_secundaria",
+  "cor_acento",
+  "cor_fundo",
+  "cor_superficie",
+  "modelo_layout",
+  "hero_background_type",
+  "hero_background_url",
+  "hero_overlay_opacity",
+] as const satisfies readonly (keyof FormState)[];
 
 const layoutOptions = [
   {
@@ -55,6 +71,16 @@ const layoutOptions = [
     key: "editorial",
     title: "Editorial",
     description: "Mais impacto visual e melhor uso de mídia no hero.",
+  },
+  {
+    key: "photographic",
+    title: "FotogrÃ¡fico",
+    description: "Hero dominante e imagens em primeiro plano.",
+  },
+  {
+    key: "contemporary",
+    title: "ContemporÃ¢neo",
+    description: "Grid limpo, cards equilibrados e tipografia moderna.",
   },
 ] as const;
 
@@ -103,6 +129,42 @@ const colorPresets = [
       cor_secundaria: "#111827",
       cor_acento: "#D4AF37",
       cor_fundo: "#F5F7FB",
+      cor_superficie: "#FFFFFF",
+      modelo_layout: "editorial",
+    },
+  },
+  {
+    key: "sage-contemporary",
+    title: "Verde SÃ¡lvia",
+    colors: {
+      cor_primaria: "#657A68",
+      cor_secundaria: "#33443A",
+      cor_acento: "#B58B5A",
+      cor_fundo: "#F5F3EC",
+      cor_superficie: "#FFFFFF",
+      modelo_layout: "contemporary",
+    },
+  },
+  {
+    key: "terracotta-photographic",
+    title: "Terracota",
+    colors: {
+      cor_primaria: "#A9573F",
+      cor_secundaria: "#492F2A",
+      cor_acento: "#D5A36A",
+      cor_fundo: "#FFF8F2",
+      cor_superficie: "#FFFFFF",
+      modelo_layout: "photographic",
+    },
+  },
+  {
+    key: "soft-blue-editorial",
+    title: "Azul Suave",
+    colors: {
+      cor_primaria: "#58758F",
+      cor_secundaria: "#263B4D",
+      cor_acento: "#C5A46D",
+      cor_fundo: "#F4F8FA",
       cor_superficie: "#FFFFFF",
       modelo_layout: "editorial",
     },
@@ -220,11 +282,29 @@ async function compressImageFile(file: File): Promise<File> {
   });
 }
 
+function normalizeForm(form: FormState): FormState {
+  return {
+    ...form,
+    cor_primaria: normalizeHexInput(form.cor_primaria, "#800000"),
+    cor_secundaria: normalizeHexInput(form.cor_secundaria, "#08265E"),
+    cor_acento: normalizeHexInput(form.cor_acento, "#C9A227"),
+    cor_fundo: normalizeHexInput(form.cor_fundo, "#FFFAF8"),
+    cor_superficie: normalizeHexInput(form.cor_superficie, "#FFFFFF"),
+    hero_background_url:
+      form.hero_background_type === "none"
+        ? ""
+        : form.hero_background_url.trim(),
+    hero_overlay_opacity: String(
+      Math.min(Math.max(Number(form.hero_overlay_opacity || 45), 0), 90),
+    ),
+  };
+}
+
 export function LayoutSettingsPanel({
   eventoId,
   configuracoes,
 }: LayoutSettingsPanelProps) {
-  const [form, setForm] = useState<FormState>({
+  const initialForm: FormState = {
     cor_primaria: configuracoes?.cor_primaria || "#800000",
     cor_secundaria: configuracoes?.cor_secundaria || "#08265E",
     cor_acento: configuracoes?.cor_acento || "#C9A227",
@@ -234,12 +314,27 @@ export function LayoutSettingsPanel({
     hero_background_type: configuracoes?.hero_background_type || "none",
     hero_background_url: configuracoes?.hero_background_url || "",
     hero_overlay_opacity: String(configuracoes?.hero_overlay_opacity ?? 45),
-  });
+  };
+  const [form, setForm] = useState<FormState>(initialForm);
+  const [savedForm, setSavedForm] = useState<FormState>(initialForm);
+  const [configUpdatedAt, setConfigUpdatedAt] = useState(
+    configuracoes?.updated_at || "",
+  );
+  const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">("desktop");
+  const [openingPreviewKey, setOpeningPreviewKey] = useState(0);
 
   const [loading, setLoading] = useState(false);
   const [uploadingHero, setUploadingHero] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [feedbackType, setFeedbackType] = useState<"success" | "error" | "">("");
+  const normalizedForm = normalizeForm(form);
+  const changedFields = buildChangedPatch(
+    normalizeForm(savedForm),
+    normalizedForm,
+    layoutFields,
+  );
+  const hasChanges = Object.keys(changedFields).length > 0;
+  useUnsavedChanges(hasChanges);
 
   function handleChange(field: keyof FormState, value: string) {
     setForm((prev) => ({
@@ -297,6 +392,37 @@ export function LayoutSettingsPanel({
     }));
 
     setFeedback(`Preset "${preset.title}" aplicado.`);
+    setFeedbackType("success");
+  }
+
+  function discardChanges() {
+    setForm(savedForm);
+    setFeedback("AlteraÃ§Ãµes locais descartadas.");
+    setFeedbackType("success");
+  }
+
+  function restoreDefaults() {
+    if (
+      !window.confirm(
+        "Restaurar somente as opÃ§Ãµes visuais para o padrÃ£o? A alteraÃ§Ã£o ainda precisarÃ¡ ser salva.",
+      )
+    ) {
+      return;
+    }
+
+    setForm((current) => ({
+      ...current,
+      cor_primaria: "#800000",
+      cor_secundaria: "#08265E",
+      cor_acento: "#C9A227",
+      cor_fundo: "#FFFAF8",
+      cor_superficie: "#FFFFFF",
+      modelo_layout: "classic",
+      hero_background_type: "none",
+      hero_background_url: "",
+      hero_overlay_opacity: "45",
+    }));
+    setFeedback("PadrÃ£o aplicado localmente. Salve para confirmar.");
     setFeedbackType("success");
   }
 
@@ -411,31 +537,27 @@ export function LayoutSettingsPanel({
       return;
     }
 
-    const normalizedPayload = {
-      evento_id: eventoId,
-      cor_primaria: normalizeHexInput(form.cor_primaria, "#800000"),
-      cor_secundaria: normalizeHexInput(form.cor_secundaria, "#08265E"),
-      cor_acento: normalizeHexInput(form.cor_acento, "#C9A227"),
-      cor_fundo: normalizeHexInput(form.cor_fundo, "#FFFAF8"),
-      cor_superficie: normalizeHexInput(form.cor_superficie, "#FFFFFF"),
-      modelo_layout: form.modelo_layout,
-      hero_background_type: form.hero_background_type,
-      hero_background_url:
-        form.hero_background_type === "none" ? "" : form.hero_background_url.trim(),
-      hero_overlay_opacity: overlay,
-    };
-
     try {
       setLoading(true);
       setFeedback("");
       setFeedbackType("");
 
       const response = await fetch("/api/admin/layout-config", {
-        method: "POST",
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(normalizedPayload),
+        body: JSON.stringify({
+          evento_id: eventoId,
+          expected_updated_at: configUpdatedAt || undefined,
+          ...changedFields,
+          ...(Object.prototype.hasOwnProperty.call(
+            changedFields,
+            "hero_overlay_opacity",
+          )
+            ? { hero_overlay_opacity: overlay }
+            : {}),
+        }),
       });
 
       const result = await parseJsonResponse(response);
@@ -444,15 +566,17 @@ export function LayoutSettingsPanel({
         throw new Error(result?.error || "Não foi possível salvar o layout.");
       }
 
-      setForm((prev) => ({
-        ...prev,
-        cor_primaria: normalizedPayload.cor_primaria,
-        cor_secundaria: normalizedPayload.cor_secundaria,
-        cor_acento: normalizedPayload.cor_acento,
-        cor_fundo: normalizedPayload.cor_fundo,
-        cor_superficie: normalizedPayload.cor_superficie,
-        hero_background_url: normalizedPayload.hero_background_url,
-      }));
+      const config = result.configuracoes || {};
+      const saved = normalizeForm({
+        ...form,
+        ...config,
+        hero_overlay_opacity: String(
+          config.hero_overlay_opacity ?? normalizedForm.hero_overlay_opacity,
+        ),
+      });
+      setForm(saved);
+      setSavedForm(saved);
+      setConfigUpdatedAt(config.updated_at || configUpdatedAt);
 
       setFeedback("Configurações visuais salvas com sucesso.");
       setFeedbackType("success");
@@ -479,6 +603,7 @@ export function LayoutSettingsPanel({
 
   return (
     <form className="admin-form-stack" onSubmit={handleSubmit}>
+      <fieldset className="admin-form-fieldset" disabled={loading}>
       <AdminCard>
         <AdminCardHeader
           title="Presets rápidos"
@@ -536,6 +661,8 @@ export function LayoutSettingsPanel({
                   handleColorTextChange("cor_primaria", e.target.value)
                 }
                 placeholder="#800000"
+                pattern="#[0-9A-Fa-f]{6}"
+                maxLength={7}
                 className="admin-color-input-group__text"
               />
             </div>
@@ -560,6 +687,8 @@ export function LayoutSettingsPanel({
                   handleColorTextChange("cor_secundaria", e.target.value)
                 }
                 placeholder="#08265E"
+                pattern="#[0-9A-Fa-f]{6}"
+                maxLength={7}
                 className="admin-color-input-group__text"
               />
             </div>
@@ -584,6 +713,8 @@ export function LayoutSettingsPanel({
                   handleColorTextChange("cor_acento", e.target.value)
                 }
                 placeholder="#C9A227"
+                pattern="#[0-9A-Fa-f]{6}"
+                maxLength={7}
                 className="admin-color-input-group__text"
               />
             </div>
@@ -608,6 +739,8 @@ export function LayoutSettingsPanel({
                   handleColorTextChange("cor_fundo", e.target.value)
                 }
                 placeholder="#FFFAF8"
+                pattern="#[0-9A-Fa-f]{6}"
+                maxLength={7}
                 className="admin-color-input-group__text"
               />
             </div>
@@ -632,13 +765,40 @@ export function LayoutSettingsPanel({
                   handleColorTextChange("cor_superficie", e.target.value)
                 }
                 placeholder="#FFFFFF"
+                pattern="#[0-9A-Fa-f]{6}"
+                maxLength={7}
                 className="admin-color-input-group__text"
               />
             </div>
           </AdminField>
         </div>
 
-        <div className="admin-theme-preview admin-theme-preview--enhanced">
+        <div className="admin-preview-toolbar" aria-label="Tamanho da prÃ©via">
+          <button
+            type="button"
+            aria-pressed={previewMode === "desktop"}
+            onClick={() => setPreviewMode("desktop")}
+          >
+            Desktop
+          </button>
+          <button
+            type="button"
+            aria-pressed={previewMode === "mobile"}
+            onClick={() => setPreviewMode("mobile")}
+          >
+            Mobile
+          </button>
+          <button
+            type="button"
+            onClick={() => setOpeningPreviewKey((current) => current + 1)}
+          >
+            Visualizar abertura
+          </button>
+        </div>
+
+        <div
+          className={`admin-theme-preview admin-theme-preview--enhanced admin-theme-preview--${previewMode}`}
+        >
           <div
             className="admin-theme-preview__canvas"
             style={{ background: normalizeHexInput(form.cor_fundo, "#FFFAF8") }}
@@ -685,6 +845,48 @@ export function LayoutSettingsPanel({
             </div>
           </div>
         </div>
+
+        {openingPreviewKey > 0 ? (
+          <div
+            className="admin-opening-preview-shell"
+            style={
+              {
+                "--theme-primary": normalizeHexInput(
+                  form.cor_primaria,
+                  "#800000",
+                ),
+                "--theme-secondary": normalizeHexInput(
+                  form.cor_secundaria,
+                  "#08265E",
+                ),
+                "--theme-accent": normalizeHexInput(
+                  form.cor_acento,
+                  "#C9A227",
+                ),
+                "--theme-surface": normalizeHexInput(
+                  form.cor_superficie,
+                  "#FFFFFF",
+                ),
+              } as React.CSSProperties
+            }
+          >
+            <EventOpening
+              key={openingPreviewKey}
+              eventKey="admin-preview"
+              coupleNames="Flávio & Ana"
+              eventDate="15 de agosto de 2026"
+              preview
+              onComplete={() => setOpeningPreviewKey(0)}
+            >
+              {null}
+            </EventOpening>
+          </div>
+        ) : (
+          <div className="admin-opening-preview-thumbnail" aria-hidden="true">
+            <span />
+            <strong>Abertura com envelope</strong>
+          </div>
+        )}
       </AdminCard>
 
       <AdminCard>
@@ -756,16 +958,22 @@ export function LayoutSettingsPanel({
             htmlFor="hero_overlay_opacity"
             hint="Valor entre 0 e 90 para dar contraste ao texto."
           >
-            <input
-              id="hero_overlay_opacity"
-              type="number"
-              min={0}
-              max={90}
-              value={form.hero_overlay_opacity}
-              onChange={(e) =>
-                handleChange("hero_overlay_opacity", e.target.value)
-              }
-            />
+            <div className="admin-range-field">
+              <input
+                id="hero_overlay_opacity"
+                type="range"
+                min={0}
+                max={90}
+                step={1}
+                value={form.hero_overlay_opacity}
+                onChange={(e) =>
+                  handleChange("hero_overlay_opacity", e.target.value)
+                }
+              />
+              <output htmlFor="hero_overlay_opacity">
+                {form.hero_overlay_opacity}%
+              </output>
+            </div>
           </AdminField>
 
           <div className="admin-form-grid-full">
@@ -800,7 +1008,7 @@ export function LayoutSettingsPanel({
             >
               <input
                 id="hero_background_url"
-                type="text"
+                type="url"
                 value={form.hero_background_url}
                 onChange={(e) =>
                   handleChange("hero_background_url", e.target.value)
@@ -859,6 +1067,8 @@ export function LayoutSettingsPanel({
         )}
       </AdminCard>
 
+      </fieldset>
+
       <div className="admin-submit-bar">
         <div className="admin-submit-bar__feedback">
           {feedback ? (
@@ -873,16 +1083,34 @@ export function LayoutSettingsPanel({
             </p>
           ) : (
             <span className="admin-submit-bar__hint">
-              Revise as escolhas visuais e salve quando terminar.
+              {hasChanges
+                ? "HÃ¡ alteraÃ§Ãµes visuais nÃ£o salvas."
+                : "Nenhuma alteraÃ§Ã£o pendente."}
             </span>
           )}
         </div>
 
         <div className="admin-submit-bar__actions">
           <AdminButton
+            type="button"
+            variant="secondary"
+            disabled={loading || uploadingHero || !hasChanges}
+            onClick={discardChanges}
+          >
+            Descartar
+          </AdminButton>
+          <AdminButton
+            type="button"
+            variant="secondary"
+            disabled={loading || uploadingHero}
+            onClick={restoreDefaults}
+          >
+            Restaurar padrÃ£o
+          </AdminButton>
+          <AdminButton
             type="submit"
             variant="primary"
-            disabled={loading || uploadingHero}
+            disabled={loading || uploadingHero || !hasChanges}
           >
             {loading
               ? "Salvando..."

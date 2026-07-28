@@ -17,6 +17,10 @@ export async function POST(request: Request) {
 
     const eventoId = Number(body.evento_id);
     const acompanhantes = Number(body.acompanhantes || 0);
+    const nome = String(body.nome || "").trim();
+    const telefone = String(body.telefone || "").trim();
+    const presenca = String(body.presenca || "").trim();
+    const observacoes = String(body.observacoes || "").trim();
 
     if (!eventoId) {
       return NextResponse.json(
@@ -25,21 +29,42 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!body.nome?.trim()) {
+    if (!nome || nome.length > 120) {
       return NextResponse.json(
-        { error: "Informe seu nome completo." },
+        { error: "Informe um nome válido com até 120 caracteres." },
         { status: 400 },
       );
     }
 
-    if (!body.presenca?.trim()) {
+    if (presenca !== "sim" && presenca !== "nao") {
       return NextResponse.json(
         { error: "Selecione se você irá comparecer." },
         { status: 400 },
       );
     }
 
+    if (telefone.length > 24 || observacoes.length > 1000) {
+      return NextResponse.json(
+        { error: "Telefone ou observações excedem o limite permitido." },
+        { status: 400 },
+      );
+    }
+
     const supabase = createAdminClient();
+
+    const { data: evento } = await supabase
+      .from("eventos")
+      .select("id")
+      .eq("id", eventoId)
+      .eq("ativo", true)
+      .maybeSingle();
+
+    if (!evento) {
+      return NextResponse.json(
+        { error: "Este evento não está disponível para confirmações." },
+        { status: 404 },
+      );
+    }
 
     const { data: config, error: configError } = await supabase
       .from("configuracoes_evento")
@@ -90,6 +115,13 @@ export async function POST(request: Request) {
           .filter(Boolean)
       : [];
 
+    if (nomesAcompanhantes.some((item) => item.length > 120)) {
+      return NextResponse.json(
+        { error: "O nome de cada acompanhante deve ter até 120 caracteres." },
+        { status: 400 },
+      );
+    }
+
     if (acompanhantes > 0 && nomesAcompanhantes.length !== acompanhantes) {
       return NextResponse.json(
         { error: "Preencha o nome de todos os acompanhantes." },
@@ -102,12 +134,12 @@ export async function POST(request: Request) {
       .insert([
         {
           evento_id: eventoId,
-          nome: body.nome.trim(),
-          telefone: body.telefone?.trim() || null,
+          nome,
+          telefone: telefone || null,
           acompanhantes,
           nomes_acompanhantes: acompanhantes > 0 ? nomesAcompanhantes : null,
-          presenca: body.presenca.trim(),
-          observacoes: body.observacoes?.trim() || null,
+          presenca,
+          observacoes: observacoes || null,
         },
       ])
       .select("*")

@@ -36,6 +36,7 @@ export type ConfiguracaoEvento = {
   historia_titulo: string | null;
   historia_descricao: string | null;
   historia_modelo_grid: "editorial" | "mosaico" | "timeline" | null;
+  updated_at: string | null;
 };
 
 export const getConfiguracaoEvento = cache(async (

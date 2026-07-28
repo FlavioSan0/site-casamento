@@ -5,6 +5,8 @@ import { AdminButton } from "./ui/admin-button";
 import { AdminCard, AdminCardHeader } from "./ui/admin-card";
 import { AdminField } from "./ui/admin-field";
 import { buildMapsUrl } from "../../lib/utils/maps";
+import { buildChangedPatch } from "../../lib/utils/config-patch";
+import { useUnsavedChanges } from "./use-unsaved-changes";
 
 type EventSettingsFormProps = {
   evento: {
@@ -31,6 +33,7 @@ type EventSettingsFormProps = {
     dress_code_cores: string | null;
     dress_code_observacao: string | null;
     max_acompanhantes: number | null;
+    updated_at?: string | null;
   } | null;
 };
 
@@ -57,6 +60,29 @@ type FormState = {
   dress_code_observacao: string;
   max_acompanhantes: string;
 };
+
+const editableFields = [
+  "slug",
+  "nome_evento",
+  "nome_casal",
+  "data_evento",
+  "horario_evento",
+  "local_cerimonia",
+  "link_maps_cerimonia",
+  "local_recepcao",
+  "link_maps_recepcao",
+  "mensagem_confirmacao",
+  "data_limite_confirmacao",
+  "chave_pix",
+  "qr_pix_url",
+  "dress_code_titulo",
+  "dress_code_descricao",
+  "dress_code_homens",
+  "dress_code_mulheres",
+  "dress_code_cores",
+  "dress_code_observacao",
+  "max_acompanhantes",
+] as const satisfies readonly (keyof FormState)[];
 
 async function parseJsonResponse(response: Response) {
   const rawText = await response.text();
@@ -96,10 +122,17 @@ export function EventSettingsForm({
     max_acompanhantes: String(configuracoes?.max_acompanhantes ?? 4),
   });
 
+  const [savedForm, setSavedForm] = useState(form);
+  const [configUpdatedAt, setConfigUpdatedAt] = useState(
+    configuracoes?.updated_at || "",
+  );
   const [loading, setLoading] = useState(false);
   const [uploadingQr, setUploadingQr] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [feedbackType, setFeedbackType] = useState<"success" | "error" | "">("");
+  const changedFields = buildChangedPatch(savedForm, form, editableFields);
+  const hasChanges = Object.keys(changedFields).length > 0;
+  useUnsavedChanges(hasChanges);
 
   const ceremonyMapPreview = buildMapsUrl(
     form.link_maps_cerimonia,
@@ -191,13 +224,20 @@ export function EventSettingsForm({
       setFeedbackType("");
 
       const response = await fetch("/api/admin/evento-config", {
-        method: "POST",
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          ...form,
-          max_acompanhantes: maxAcompanhantes,
+          evento_id: form.evento_id,
+          expected_updated_at: configUpdatedAt || undefined,
+          ...changedFields,
+          ...(Object.prototype.hasOwnProperty.call(
+            changedFields,
+            "max_acompanhantes",
+          )
+            ? { max_acompanhantes: maxAcompanhantes }
+            : {}),
         }),
       });
 
@@ -208,6 +248,19 @@ export function EventSettingsForm({
       }
 
       setFeedback("Configurações salvas com sucesso.");
+      const saved = {
+        ...form,
+        ...(result.evento || {}),
+        ...(result.configuracoes || {}),
+        evento_id: form.evento_id,
+        max_acompanhantes: String(
+          result.configuracoes?.max_acompanhantes ?? form.max_acompanhantes,
+        ),
+      };
+
+      setForm(saved);
+      setSavedForm(saved);
+      setConfigUpdatedAt(result.configuracoes?.updated_at || configUpdatedAt);
       setFeedbackType("success");
     } catch (error) {
       const message =
@@ -221,6 +274,7 @@ export function EventSettingsForm({
 
   return (
     <form className="admin-form-stack" onSubmit={handleSubmit}>
+      <fieldset className="admin-form-fieldset" disabled={loading}>
       <AdminCard>
         <AdminCardHeader
           title="Informações principais"
@@ -265,7 +319,7 @@ export function EventSettingsForm({
           <AdminField label="Horário do evento" htmlFor="horario_evento">
             <input
               id="horario_evento"
-              type="text"
+              type="time"
               value={form.horario_evento}
               onChange={(e) => handleChange("horario_evento", e.target.value)}
               placeholder="17h30"
@@ -315,6 +369,7 @@ export function EventSettingsForm({
               type="number"
               min={0}
               max={10}
+              step={1}
               value={form.max_acompanhantes}
               onChange={(e) => handleChange("max_acompanhantes", e.target.value)}
             />
@@ -592,7 +647,7 @@ Evitar vestidos curtos, roupas muito justas e transparências excessivas`}
             >
               <input
                 id="qr_pix_url"
-                type="text"
+                type="url"
                 value={form.qr_pix_url}
                 onChange={(e) => handleChange("qr_pix_url", e.target.value)}
                 placeholder="Será preenchido automaticamente pelo upload"
@@ -616,6 +671,8 @@ Evitar vestidos curtos, roupas muito justas e transparências excessivas`}
         </div>
       </AdminCard>
 
+      </fieldset>
+
       <div className="admin-submit-bar">
         <div className="admin-submit-bar__feedback">
           {feedback ? (
@@ -630,7 +687,9 @@ Evitar vestidos curtos, roupas muito justas e transparências excessivas`}
             </p>
           ) : (
             <span className="admin-submit-bar__hint">
-              Revise os dados e salve quando terminar.
+              {hasChanges
+                ? "Há alterações prontas para salvar."
+                : "Nenhuma alteração pendente."}
             </span>
           )}
         </div>
@@ -639,7 +698,7 @@ Evitar vestidos curtos, roupas muito justas e transparências excessivas`}
           <AdminButton
             type="submit"
             variant="primary"
-            disabled={loading || uploadingQr}
+            disabled={loading || uploadingQr || !hasChanges}
           >
             {loading ? "Salvando..." : "Salvar configurações"}
           </AdminButton>

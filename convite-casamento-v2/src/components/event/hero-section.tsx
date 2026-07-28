@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 type HeroSectionProps = {
   nomeCasal: string;
   dataFormatada: string;
@@ -49,11 +51,13 @@ export function HeroSection({
               aria-label="Vídeo de fundo do evento"
             />
           ) : (
-            <div
+            <Image
               className="hero-media hero-media--image"
-              style={{ backgroundImage: `url("${mediaUrl}")` }}
-              aria-label="Imagem de fundo do evento"
-              role="img"
+              src={mediaUrl}
+              alt=""
+              fill
+              sizes="100vw"
+              preload
             />
           )}
 

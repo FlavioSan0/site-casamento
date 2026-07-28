@@ -73,6 +73,8 @@ export default function AdminLoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="seuemail@exemplo.com"
+              autoComplete="email"
+              required
             />
           </div>
 
@@ -84,6 +86,8 @@ export default function AdminLoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Digite sua senha"
+              autoComplete="current-password"
+              required
             />
           </div>
 
@@ -92,7 +96,7 @@ export default function AdminLoginPage() {
           </button>
 
           {feedback ? (
-            <p className="form-feedback form-feedback--error">{feedback}</p>
+            <p className="form-feedback form-feedback--error" role="alert" aria-live="polite">{feedback}</p>
           ) : null}
         </form>
       </div>

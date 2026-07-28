@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 
 type PixSectionProps = {
   chavePix: string | null;
@@ -9,6 +10,27 @@ type PixSectionProps = {
 
 export function PixSection({ chavePix, qrPixUrl }: PixSectionProps) {
   const [feedback, setFeedback] = useState("");
+  const feedbackTimerRef = useRef<number | null>(null);
+  const copied = feedback.startsWith("Chave PIX copiada");
+
+  useEffect(
+    () => () => {
+      if (feedbackTimerRef.current !== null) {
+        window.clearTimeout(feedbackTimerRef.current);
+      }
+    },
+    [],
+  );
+
+  function clearFeedbackLater() {
+    if (feedbackTimerRef.current !== null) {
+      window.clearTimeout(feedbackTimerRef.current);
+    }
+    feedbackTimerRef.current = window.setTimeout(() => {
+      setFeedback("");
+      feedbackTimerRef.current = null;
+    }, 2500);
+  }
 
   if (!chavePix && !qrPixUrl) {
     return null;
@@ -20,10 +42,10 @@ export function PixSection({ chavePix, qrPixUrl }: PixSectionProps) {
     try {
       await navigator.clipboard.writeText(chavePix);
       setFeedback("Chave PIX copiada com sucesso.");
-      window.setTimeout(() => setFeedback(""), 2500);
+      clearFeedbackLater();
     } catch {
       setFeedback("Não foi possível copiar a chave PIX.");
-      window.setTimeout(() => setFeedback(""), 2500);
+      clearFeedbackLater();
     }
   }
 
@@ -53,12 +75,18 @@ export function PixSection({ chavePix, qrPixUrl }: PixSectionProps) {
                   type="button"
                   className="event-button pix-copy-button-refined"
                   onClick={handleCopyPix}
+                  aria-describedby={feedback ? "pix-copy-feedback" : undefined}
+                  data-copied={copied ? "true" : undefined}
                 >
-                  Copiar chave PIX
+                  {copied ? "Copiado" : "Copiar chave PIX"}
                 </button>
               </div>
 
-              {feedback ? <p className="pix-feedback-refined">{feedback}</p> : null}
+              {feedback ? (
+                <p id="pix-copy-feedback" className="pix-feedback-refined" role="status" aria-live="polite">
+                  {feedback}
+                </p>
+              ) : null}
             </div>
           ) : null}
         </div>
@@ -66,9 +94,12 @@ export function PixSection({ chavePix, qrPixUrl }: PixSectionProps) {
         {qrPixUrl ? (
           <div className="pix-qr-card-refined">
             <div className="pix-qr-card-refined__inner">
-              <img
+              <Image
                 src={qrPixUrl}
                 alt="QR Code PIX"
+                width={680}
+                height={680}
+                sizes="(max-width: 640px) calc(100vw - 68px), 340px"
                 className="pix-qr-card-refined__image"
               />
             </div>

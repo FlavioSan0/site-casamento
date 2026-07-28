@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { AdminSectionHeader } from "./admin-section-header";
 import { AdminBadge } from "./ui/admin-badge";
 import { AdminButton } from "./ui/admin-button";
 import { AdminCard, AdminCardHeader } from "./ui/admin-card";
 import { AdminField } from "./ui/admin-field";
+import { useAdminModal } from "./use-admin-modal";
 
 type GaleriaItem = {
   id: number;
@@ -54,6 +55,7 @@ export function GalleryManager({ eventoId, imagens }: GalleryManagerProps) {
   const [feedbackType, setFeedbackType] = useState<"success" | "error" | "">("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const modalTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   const filteredGallery = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
@@ -109,23 +111,7 @@ export function GalleryManager({ eventoId, imagens }: GalleryManagerProps) {
     resetForm();
   }, [loading, uploadingImage, resetForm]);
 
-  useEffect(() => {
-    function handleEscape(event: KeyboardEvent) {
-      if (event.key === "Escape" && !loading && !uploadingImage) {
-        closeModal();
-      }
-    }
-
-    if (isModalOpen) {
-      document.addEventListener("keydown", handleEscape);
-      document.body.style.overflow = "hidden";
-    }
-
-    return () => {
-      document.removeEventListener("keydown", handleEscape);
-      document.body.style.overflow = "";
-    };
-  }, [isModalOpen, loading, uploadingImage, closeModal]);
+  useAdminModal(isModalOpen, closeModal, loading || uploadingImage, modalTriggerRef);
 
   function openCreateModal() {
     resetForm();
@@ -322,7 +308,11 @@ export function GalleryManager({ eventoId, imagens }: GalleryManagerProps) {
             <AdminButton
               type="button"
               variant="primary"
-              onClick={openCreateModal}
+              onClick={(event) => {
+                modalTriggerRef.current = event.currentTarget;
+                event.currentTarget.focus();
+                openCreateModal();
+              }}
               disabled={loading}
             >
               Adicionar imagem
@@ -364,7 +354,7 @@ export function GalleryManager({ eventoId, imagens }: GalleryManagerProps) {
           rightSlot={
             <div className="admin-finance-search">
               <input
-                type="text"
+                type="search"
                 placeholder="Buscar imagem..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -428,7 +418,11 @@ export function GalleryManager({ eventoId, imagens }: GalleryManagerProps) {
                     <AdminButton
                       type="button"
                       variant="secondary"
-                      onClick={() => openEditModal(item)}
+                      onClick={(event) => {
+                        modalTriggerRef.current = event.currentTarget;
+                        event.currentTarget.focus();
+                        openEditModal(item);
+                      }}
                       disabled={loading}
                       className="admin-layout-card-refined__button"
                     >
@@ -459,11 +453,11 @@ export function GalleryManager({ eventoId, imagens }: GalleryManagerProps) {
             if (e.target === e.currentTarget) closeModal();
           }}
         >
-          <div className="admin-modal-card admin-modal-card--wide">
+          <div className="admin-modal-card admin-modal-card--wide" role="dialog" aria-modal="true" aria-labelledby="gallery-modal-title">
             <div className="admin-modal-header">
               <div className="admin-modal-title-wrap">
                 <AdminBadge>{form.id ? "Editar imagem" : "Nova imagem"}</AdminBadge>
-                <h3 className="admin-modal-title">
+                <h3 id="gallery-modal-title" className="admin-modal-title">
                   {form.id ? "Atualizar imagem" : "Cadastrar imagem"}
                 </h3>
                 <p className="admin-modal-subtitle">
@@ -477,6 +471,7 @@ export function GalleryManager({ eventoId, imagens }: GalleryManagerProps) {
                 onClick={closeModal}
                 disabled={loading || uploadingImage}
                 aria-label="Fechar"
+                autoFocus
               >
                 ×
               </button>
@@ -517,7 +512,7 @@ export function GalleryManager({ eventoId, imagens }: GalleryManagerProps) {
                     >
                       <input
                         id="galeria_imagem_url"
-                        type="text"
+                        type="url"
                         value={form.imagem_url}
                         onChange={(e) => handleChange("imagem_url", e.target.value)}
                         placeholder="Será preenchido automaticamente pelo upload"

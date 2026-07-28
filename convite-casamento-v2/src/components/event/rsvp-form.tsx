@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { formatPhoneBR } from "../../lib/utils/format-phone";
 
 type RsvpFormProps = {
   eventoId: number;
@@ -16,6 +17,8 @@ type FormState = {
   acompanhantes: string[];
   observacoes: string;
 };
+
+type FieldErrors = Partial<Record<"nome" | "comparecera" | "acompanhantes", string>>;
 
 function formatDateBR(dateString: string | null) {
   if (!dateString) return null;
@@ -52,6 +55,17 @@ export function RsvpForm({
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [feedbackType, setFeedbackType] = useState<"success" | "error" | "">("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const focusFrameRef = useRef<number | null>(null);
+
+  useEffect(
+    () => () => {
+      if (focusFrameRef.current !== null) {
+        window.cancelAnimationFrame(focusFrameRef.current);
+      }
+    },
+    [],
+  );
 
   const deadlineFormatted = useMemo(
     () => formatDateBR(dataLimiteConfirmacao),
@@ -68,6 +82,9 @@ export function RsvpForm({
       ...prev,
       [field]: value,
     }));
+    if (field === "nome" || field === "comparecera") {
+      setFieldErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
   }
 
   function handleQuantidadeAcompanhantes(value: number) {
@@ -106,6 +123,7 @@ export function RsvpForm({
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (loading) return;
 
     if (deadlineExpired) {
       setFeedback("O prazo para confirmação já foi encerrado.");
@@ -113,26 +131,33 @@ export function RsvpForm({
       return;
     }
 
-    if (!form.nome.trim()) {
-      setFeedback("Informe seu nome.");
-      setFeedbackType("error");
-      return;
+    const errors: FieldErrors = {};
+    if (!form.nome.trim()) errors.nome = "Informe seu nome completo.";
+    if (!form.comparecera) errors.comparecera = "Selecione uma opção.";
+    if (
+      form.comparecera === "sim" &&
+      form.acompanhantes.some((item) => !item.trim())
+    ) {
+      errors.acompanhantes = "Preencha o nome de cada acompanhante.";
     }
 
-    if (!form.comparecera) {
-      setFeedback("Selecione se você irá comparecer.");
+    const firstInvalid = (["nome", "comparecera", "acompanhantes"] as const).find(
+      (field) => errors[field],
+    );
+    if (firstInvalid) {
+      setFieldErrors(errors);
+      setFeedback("Revise os campos indicados.");
       setFeedbackType("error");
-      return;
-    }
-
-    if (form.comparecera === "sim") {
-      const acompanhantesInvalidos = form.acompanhantes.some((item) => !item.trim());
-
-      if (acompanhantesInvalidos) {
-        setFeedback("Preencha os nomes de todos os acompanhantes informados.");
-        setFeedbackType("error");
-        return;
+      const targetId =
+        firstInvalid === "acompanhantes" ? "acompanhante_0" : firstInvalid;
+      if (focusFrameRef.current !== null) {
+        window.cancelAnimationFrame(focusFrameRef.current);
       }
+      focusFrameRef.current = window.requestAnimationFrame(() => {
+        document.getElementById(targetId)?.focus();
+        focusFrameRef.current = null;
+      });
+      return;
     }
 
     try {
@@ -149,8 +174,9 @@ export function RsvpForm({
           evento_id: eventoId,
           nome: form.nome.trim(),
           telefone: form.telefone.trim() || null,
-          comparecera: form.comparecera === "sim",
-          acompanhantes:
+          presenca: form.comparecera,
+          acompanhantes: form.comparecera === "sim" ? form.acompanhantes.length : 0,
+          nomes_acompanhantes:
             form.comparecera === "sim"
               ? form.acompanhantes.map((item) => item.trim()).filter(Boolean)
               : [],
@@ -169,6 +195,7 @@ export function RsvpForm({
           "Confirmação enviada com sucesso. Obrigado por fazer parte desse momento.",
       );
       setFeedbackType("success");
+      setFieldErrors({});
 
       setForm({
         nome: "",
@@ -229,46 +256,59 @@ export function RsvpForm({
         </div>
 
         <div className="rsvp-form-wrap">
-          <form className="rsvp-form-refined" onSubmit={handleSubmit}>
+          <form className="rsvp-form-refined" onSubmit={handleSubmit} noValidate>
             <div className="rsvp-form-grid">
               <div className="form-field">
-                <label htmlFor="nome">Seu nome</label>
+                <label htmlFor="nome">Seu nome <span aria-hidden="true">*</span></label>
                 <input
                   id="nome"
                   type="text"
                   value={form.nome}
                   onChange={(e) => updateField("nome", e.target.value)}
                   placeholder="Digite seu nome completo"
+                  maxLength={120}
+                  autoComplete="name"
+                  required
+                  aria-invalid={Boolean(fieldErrors.nome)}
+                  aria-describedby={fieldErrors.nome ? "nome-error" : undefined}
                   disabled={loading || deadlineExpired}
                 />
+                {fieldErrors.nome ? <p id="nome-error" className="field-error">{fieldErrors.nome}</p> : null}
               </div>
 
               <div className="form-field">
                 <label htmlFor="telefone">Telefone</label>
                 <input
                   id="telefone"
-                  type="text"
+                  type="tel"
+                  inputMode="tel"
                   value={form.telefone}
-                  onChange={(e) => updateField("telefone", e.target.value)}
-                  placeholder="Digite seu telefone"
+                  onChange={(e) => updateField("telefone", formatPhoneBR(e.target.value))}
+                  placeholder="(00) 00000-0000"
+                  maxLength={15}
+                  autoComplete="tel"
                   disabled={loading || deadlineExpired}
                 />
               </div>
 
               <div className="form-field form-field--full">
-                <label htmlFor="comparecera">Você irá comparecer?</label>
+                <label htmlFor="comparecera">Você irá comparecer? <span aria-hidden="true">*</span></label>
                 <select
                   id="comparecera"
                   value={form.comparecera}
                   onChange={(e) =>
                     updateField("comparecera", e.target.value as "sim" | "nao" | "")
                   }
+                  required
+                  aria-invalid={Boolean(fieldErrors.comparecera)}
+                  aria-describedby={fieldErrors.comparecera ? "comparecera-error" : undefined}
                   disabled={loading || deadlineExpired}
                 >
                   <option value="">Selecione uma opção</option>
                   <option value="sim">Sim, irei comparecer</option>
                   <option value="nao">Não poderei comparecer</option>
                 </select>
+                {fieldErrors.comparecera ? <p id="comparecera-error" className="field-error">{fieldErrors.comparecera}</p> : null}
               </div>
             </div>
 
@@ -314,12 +354,18 @@ export function RsvpForm({
                           value={acompanhante}
                           onChange={(e) => updateAcompanhante(index, e.target.value)}
                           placeholder={`Nome do acompanhante ${index + 1}`}
+                          maxLength={120}
+                          autoComplete="name"
+                          required
+                          aria-invalid={Boolean(fieldErrors.acompanhantes && !acompanhante.trim())}
+                          aria-describedby={fieldErrors.acompanhantes ? "acompanhantes-error" : undefined}
                           disabled={loading || deadlineExpired}
                         />
                       </div>
                     ))}
                   </div>
                 ) : null}
+                {fieldErrors.acompanhantes ? <p id="acompanhantes-error" className="field-error">{fieldErrors.acompanhantes}</p> : null}
               </div>
             ) : null}
 
@@ -331,6 +377,7 @@ export function RsvpForm({
                 onChange={(e) => updateField("observacoes", e.target.value)}
                 placeholder="Se desejar, deixe uma observação"
                 rows={5}
+                maxLength={1000}
                 disabled={loading || deadlineExpired}
               />
             </div>
@@ -342,6 +389,8 @@ export function RsvpForm({
                     ? "form-feedback--error"
                     : "form-feedback--success"
                 }`}
+                role={feedbackType === "error" ? "alert" : "status"}
+                aria-live="polite"
               >
                 {feedback}
               </p>
@@ -354,6 +403,11 @@ export function RsvpForm({
             >
               {loading ? "Enviando confirmação..." : "Confirmar presença"}
             </button>
+            {feedbackType === "success" ? (
+              <a className="rsvp-gifts-link" href="#presentes">
+                Ver opções de presentes
+              </a>
+            ) : null}
           </form>
         </div>
       </div>

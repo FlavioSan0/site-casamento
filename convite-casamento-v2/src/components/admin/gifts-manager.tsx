@@ -1,12 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { AdminSectionHeader } from "./admin-section-header";
 import { AdminBadge } from "./ui/admin-badge";
 import { AdminButton } from "./ui/admin-button";
 import { AdminCard, AdminCardHeader } from "./ui/admin-card";
 import { AdminField } from "./ui/admin-field";
 import type { Presente } from "../../types/presente";
+import { formatCurrencyInputBR } from "../../lib/utils/format-currency";
+import { useAdminModal } from "./use-admin-modal";
 
 type GiftsManagerProps = {
   eventoId: number;
@@ -69,6 +71,7 @@ export function GiftsManager({ eventoId, presentes }: GiftsManagerProps) {
   const [feedbackType, setFeedbackType] = useState<"success" | "error" | "">("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const modalTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   const filteredGifts = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
@@ -126,23 +129,7 @@ export function GiftsManager({ eventoId, presentes }: GiftsManagerProps) {
     resetForm();
   }, [loading, uploadingImage, resetForm]);
 
-  useEffect(() => {
-    function handleEscape(event: KeyboardEvent) {
-      if (event.key === "Escape" && !loading && !uploadingImage) {
-        closeModal();
-      }
-    }
-
-    if (isModalOpen) {
-      document.addEventListener("keydown", handleEscape);
-      document.body.style.overflow = "hidden";
-    }
-
-    return () => {
-      document.removeEventListener("keydown", handleEscape);
-      document.body.style.overflow = "";
-    };
-  }, [isModalOpen, loading, uploadingImage, closeModal]);
+  useAdminModal(isModalOpen, closeModal, loading || uploadingImage, modalTriggerRef);
 
   function handleChange<K extends keyof GiftFormState>(
     field: K,
@@ -353,7 +340,11 @@ export function GiftsManager({ eventoId, presentes }: GiftsManagerProps) {
             <AdminButton
               type="button"
               variant="primary"
-              onClick={openCreateModal}
+              onClick={(event) => {
+                modalTriggerRef.current = event.currentTarget;
+                event.currentTarget.focus();
+                openCreateModal();
+              }}
               disabled={loading}
             >
               Adicionar presente
@@ -395,7 +386,7 @@ export function GiftsManager({ eventoId, presentes }: GiftsManagerProps) {
           rightSlot={
             <div className="admin-finance-search">
               <input
-                type="text"
+                type="search"
                 placeholder="Buscar presente..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -495,7 +486,11 @@ export function GiftsManager({ eventoId, presentes }: GiftsManagerProps) {
                     <AdminButton
                       type="button"
                       variant="secondary"
-                      onClick={() => openEditModal(presente)}
+                      onClick={(event) => {
+                        modalTriggerRef.current = event.currentTarget;
+                        event.currentTarget.focus();
+                        openEditModal(presente);
+                      }}
                       disabled={loading}
                       className="admin-gift-card-refined__button"
                     >
@@ -528,11 +523,11 @@ export function GiftsManager({ eventoId, presentes }: GiftsManagerProps) {
             }
           }}
         >
-          <div className="admin-modal-card admin-modal-card--wide">
+          <div className="admin-modal-card admin-modal-card--wide" role="dialog" aria-modal="true" aria-labelledby="gift-modal-title">
             <div className="admin-modal-header">
               <div className="admin-modal-title-wrap">
                 <AdminBadge>{form.id ? "Editar presente" : "Novo presente"}</AdminBadge>
-                <h3 className="admin-modal-title">
+                <h3 id="gift-modal-title" className="admin-modal-title">
                   {form.id ? "Atualizar presente" : "Cadastrar presente"}
                 </h3>
                 <p className="admin-modal-subtitle">
@@ -546,6 +541,7 @@ export function GiftsManager({ eventoId, presentes }: GiftsManagerProps) {
                 onClick={closeModal}
                 disabled={loading || uploadingImage}
                 aria-label="Fechar"
+                autoFocus
               >
                 ×
               </button>
@@ -573,8 +569,9 @@ export function GiftsManager({ eventoId, presentes }: GiftsManagerProps) {
                     <input
                       id="gift_valor"
                       type="text"
+                      inputMode="decimal"
                       value={form.valor}
-                      onChange={(e) => handleChange("valor", e.target.value)}
+                      onChange={(e) => handleChange("valor", formatCurrencyInputBR(e.target.value))}
                       placeholder="R$ 120,00"
                     />
                   </AdminField>
@@ -664,7 +661,7 @@ export function GiftsManager({ eventoId, presentes }: GiftsManagerProps) {
                     >
                       <input
                         id="gift_imagem_url"
-                        type="text"
+                        type="url"
                         value={form.imagem_url}
                         onChange={(e) => handleChange("imagem_url", e.target.value)}
                         placeholder="Será preenchido automaticamente pelo upload"

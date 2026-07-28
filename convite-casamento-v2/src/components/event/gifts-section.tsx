@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import type { Presente } from "../../types/presente";
 
 type GiftsSectionProps = {
@@ -190,7 +191,7 @@ export function GiftsSection({ eventoId, presentes }: GiftsSectionProps) {
   if (!presentesOrdenados.length) return null;
 
   return (
-    <section className="event-section gifts-section-refined">
+    <section id="presentes" className="event-section gifts-section-refined">
       <div className="gifts-section-refined__header">
         <div className="gifts-section-refined__copy">
           <span className="section-badge">Presentes</span>
@@ -218,9 +219,11 @@ export function GiftsSection({ eventoId, presentes }: GiftsSectionProps) {
             >
               {presente.imagem_url ? (
                 <div className="gift-card-refined__image-wrap">
-                  <img
+                  <Image
                     src={presente.imagem_url}
                     alt={presente.nome}
+                    fill
+                    sizes="(max-width: 900px) 100vw, 50vw"
                     className="gift-card-refined__image"
                   />
                 </div>
@@ -291,6 +294,8 @@ export function GiftsSection({ eventoId, presentes }: GiftsSectionProps) {
                       }))
                     }
                     maxLength={120}
+                    autoComplete="name"
+                    aria-label={`Seu nome para reservar ${presente.nome}`}
                     disabled={loading || !disponibilidade.disponivel}
                   />
 
@@ -317,6 +322,8 @@ export function GiftsSection({ eventoId, presentes }: GiftsSectionProps) {
                         ? "form-feedback--error"
                         : "form-feedback--success"
                     }`}
+                    role={feedback.type === "error" ? "alert" : "status"}
+                    aria-live="polite"
                   >
                     {feedback.message}
                   </p>

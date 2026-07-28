@@ -12,6 +12,7 @@ type CountdownState = {
   horas: string;
   minutos: string;
   segundos: string;
+  encerrado: boolean;
 };
 
 function normalizeTime(value: string | null) {
@@ -31,6 +32,7 @@ function getCountdown(targetDate: Date): CountdownState {
       horas: "00",
       minutos: "00",
       segundos: "00",
+      encerrado: true,
     };
   }
 
@@ -44,6 +46,7 @@ function getCountdown(targetDate: Date): CountdownState {
     horas: String(horas).padStart(2, "0"),
     minutos: String(minutos).padStart(2, "0"),
     segundos: String(segundos).padStart(2, "0"),
+    encerrado: false,
   };
 }
 
@@ -52,6 +55,7 @@ const initialCountdown: CountdownState = {
   horas: "00",
   minutos: "00",
   segundos: "00",
+  encerrado: false,
 };
 
 export function Countdown({ dataEvento, horarioEvento }: CountdownProps) {
@@ -79,7 +83,12 @@ export function Countdown({ dataEvento, horarioEvento }: CountdownProps) {
     <div className="countdown-card">
       <p className="countdown-label">Contagem regressiva</p>
 
-      <div className="countdown-grid">
+      {countdown.encerrado ? (
+        <p className="countdown-ended" role="status">
+          O grande dia chegou — obrigado por celebrar conosco.
+        </p>
+      ) : (
+      <div className="countdown-grid" aria-live="off">
         <div className="countdown-item">
           <strong>{countdown.dias}</strong>
           <span>Dias</span>
@@ -100,6 +109,7 @@ export function Countdown({ dataEvento, horarioEvento }: CountdownProps) {
           <span>Seg</span>
         </div>
       </div>
+      )}
     </div>
   );
 }

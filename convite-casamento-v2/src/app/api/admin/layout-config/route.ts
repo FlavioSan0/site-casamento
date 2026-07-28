@@ -1,89 +1,110 @@
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
-import { createAdminClient } from "../../../../lib/supabase/admin";
 import { requireAdminApiUser } from "../../../../lib/supabase/auth";
+import { createAdminClient } from "../../../../lib/supabase/admin";
+import { patchEventConfig } from "../../../../lib/supabase/patch-event-config";
+import {
+  boundedInteger,
+  enumValue,
+  hexColor,
+  parsePatchEnvelope,
+  PatchValidationError,
+  safeMediaUrl,
+} from "../../../../lib/utils/config-patch";
 
-type LayoutConfigPayload = {
-  evento_id: number;
-  cor_primaria: string | null;
-  cor_secundaria: string | null;
-  cor_acento: string | null;
-  cor_fundo: string | null;
-  cor_superficie: string | null;
-  modelo_layout: string | null;
-  hero_background_type: string | null;
-  hero_background_url: string | null;
-  hero_overlay_opacity: number | null;
-};
+const fields = [
+  "cor_primaria",
+  "cor_secundaria",
+  "cor_acento",
+  "cor_fundo",
+  "cor_superficie",
+  "modelo_layout",
+  "hero_background_type",
+  "hero_background_url",
+  "hero_overlay_opacity",
+] as const;
 
-function normalizeHex(value: string | null | undefined, fallback: string) {
-  const trimmed = String(value || "").trim();
-  return /^#([0-9A-Fa-f]{6})$/.test(trimmed) ? trimmed : fallback;
-}
+const colorFields = new Set([
+  "cor_primaria",
+  "cor_secundaria",
+  "cor_acento",
+  "cor_fundo",
+  "cor_superficie",
+]);
 
-function normalizeModelo(value: string | null | undefined) {
-  const allowed = ["classic", "romantic", "minimal", "editorial"];
-  return allowed.includes(String(value)) ? String(value) : "classic";
-}
-
-function normalizeHeroType(value: string | null | undefined) {
-  const allowed = ["none", "image", "video"];
-  return allowed.includes(String(value)) ? String(value) : "none";
-}
-
-export async function POST(request: Request) {
+export async function PATCH(request: Request) {
   const authError = await requireAdminApiUser();
   if (authError) return authError;
 
   try {
-    const body = (await request.json()) as LayoutConfigPayload;
-
-    const eventoId = Number(body.evento_id);
-    const overlayRaw = Number(body.hero_overlay_opacity ?? 45);
-    const heroOverlayOpacity = Number.isNaN(overlayRaw)
-      ? 45
-      : Math.min(Math.max(overlayRaw, 0), 90);
-
-    if (!eventoId) {
-      return NextResponse.json({ error: "Evento inválido." }, { status: 400 });
-    }
-
+    const { eventoId, expectedUpdatedAt, fields: received } =
+      parsePatchEnvelope(await request.json(), fields);
     const supabase = createAdminClient();
+    const { data: evento, error: eventoError } = await supabase
+      .from("eventos")
+      .select("slug")
+      .eq("id", eventoId)
+      .maybeSingle();
 
-    const { error } = await supabase
-      .from("configuracoes_evento")
-      .upsert(
-        {
-          evento_id: eventoId,
-          cor_primaria: normalizeHex(body.cor_primaria, "#800000"),
-          cor_secundaria: normalizeHex(body.cor_secundaria, "#08265e"),
-          cor_acento: normalizeHex(body.cor_acento, "#c9a227"),
-          cor_fundo: normalizeHex(body.cor_fundo, "#fffaf8"),
-          cor_superficie: normalizeHex(body.cor_superficie, "#ffffff"),
-          modelo_layout: normalizeModelo(body.modelo_layout),
-          hero_background_type: normalizeHeroType(body.hero_background_type),
-          hero_background_url: String(body.hero_background_url || "").trim() || null,
-          hero_overlay_opacity: heroOverlayOpacity,
-        },
-        { onConflict: "evento_id" },
-      );
+    if (eventoError) throw eventoError;
+    if (!evento) {
+      return NextResponse.json({ error: "Evento nÃ£o encontrado." }, { status: 404 });
+    }
 
-    if (error) {
-      console.error("Erro ao salvar layout do evento:", error.message);
+    const patch: Record<string, unknown> = {};
+    for (const [field, value] of Object.entries(received)) {
+      if (colorFields.has(field)) patch[field] = hexColor(value, field);
+      else if (field === "modelo_layout") {
+        patch[field] = enumValue(value, field, [
+          "classic",
+          "romantic",
+          "minimal",
+          "editorial",
+          "photographic",
+          "contemporary",
+        ]);
+      } else if (field === "hero_background_type") {
+        patch[field] = enumValue(value, field, ["none", "image", "video"]);
+      } else if (field === "hero_background_url") {
+        patch[field] = safeMediaUrl(value, field);
+      } else if (field === "hero_overlay_opacity") {
+        patch[field] = boundedInteger(value, field, 0, 90);
+      }
+    }
+
+    const result = await patchEventConfig(
+      supabase,
+      eventoId,
+      patch,
+      expectedUpdatedAt,
+    );
+
+    if (result.conflict) {
       return NextResponse.json(
-        { error: "Não foi possível salvar as configurações de layout." },
-        { status: 500 },
+        {
+          error:
+            "As configuraÃ§Ãµes foram alteradas em outra aba. Recarregue antes de salvar novamente.",
+        },
+        { status: 409 },
       );
     }
 
-    return NextResponse.json(
-      { success: true, message: "Layout salvo com sucesso." },
-      { status: 200 },
-    );
-  } catch (error) {
-    console.error("Erro inesperado ao salvar layout:", error);
+    revalidatePath(`/evento/${evento.slug}`);
+    revalidatePath(`/admin/eventos/${evento.slug}/layout`);
 
+    return NextResponse.json({
+      success: true,
+      message: "Layout salvo com sucesso.",
+      configuracoes: result.data,
+    });
+  } catch (error) {
+    if (error instanceof PatchValidationError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    console.error("Erro ao salvar layout do evento:", error);
     return NextResponse.json(
-      { error: "Erro inesperado ao salvar layout." },
+      { error: "NÃ£o foi possÃ­vel salvar as configuraÃ§Ãµes de layout." },
       { status: 500 },
     );
   }

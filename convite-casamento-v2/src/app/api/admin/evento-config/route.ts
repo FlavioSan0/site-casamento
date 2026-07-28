@@ -1,194 +1,207 @@
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { createAdminClient } from "../../../../lib/supabase/admin";
-import { normalizeMapsLinkForStorage } from "../../../../lib/utils/maps";
 import { requireAdminApiUser } from "../../../../lib/supabase/auth";
+import { patchEventConfig } from "../../../../lib/supabase/patch-event-config";
+import {
+  booleanValue,
+  boundedInteger,
+  nullableText,
+  parsePatchEnvelope,
+  PatchValidationError,
+  requiredText,
+} from "../../../../lib/utils/config-patch";
+import { normalizeMapsLinkForStorage } from "../../../../lib/utils/maps";
 
-type EventoConfigPayload = {
-  evento_id: number;
-  slug: string;
-  nome_evento: string;
-  nome_casal: string;
-  data_evento: string | null;
-  horario_evento: string | null;
-  local_cerimonia: string | null;
-  link_maps_cerimonia: string | null;
-  local_recepcao: string | null;
-  link_maps_recepcao: string | null;
+const eventFields = [
+  "slug",
+  "nome_evento",
+  "nome_casal",
+  "data_evento",
+  "horario_evento",
+  "local_cerimonia",
+  "link_maps_cerimonia",
+  "local_recepcao",
+  "link_maps_recepcao",
+  "ativo",
+] as const;
 
-  mensagem_confirmacao: string | null;
-  data_limite_confirmacao: string | null;
+const configFields = [
+  "mensagem_confirmacao",
+  "data_limite_confirmacao",
+  "chave_pix",
+  "qr_pix_url",
+  "dress_code_titulo",
+  "dress_code_descricao",
+  "dress_code_homens",
+  "dress_code_mulheres",
+  "dress_code_cores",
+  "dress_code_observacao",
+  "max_acompanhantes",
+] as const;
 
-  chave_pix: string | null;
-  qr_pix_url: string | null;
+const allFields = [...eventFields, ...configFields] as const;
+const eventFieldSet = new Set<string>(eventFields);
+const configFieldSet = new Set<string>(configFields);
 
-  dress_code_titulo: string | null;
-  dress_code_descricao: string | null;
-  dress_code_homens: string | null;
-  dress_code_mulheres: string | null;
-  dress_code_cores: string | null;
-  dress_code_observacao: string | null;
-
-  max_acompanhantes: number | null;
-
-  cor_primaria: string | null;
-  cor_secundaria: string | null;
-  cor_acento: string | null;
-  cor_fundo: string | null;
-  cor_superficie: string | null;
-
-  modelo_layout: string | null;
-
-  hero_background_type: string | null;
-  hero_background_url: string | null;
-  hero_overlay_opacity: number | null;
-};
-
-function normalizeText(value: string | null | undefined) {
-  const text = String(value || "").trim();
-  return text.length > 0 ? text : null;
+function dateValue(value: unknown, field: string) {
+  const text = nullableText(value, field);
+  if (text && !/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+    throw new PatchValidationError(`${field} possui uma data invÃ¡lida.`);
+  }
+  return text;
 }
 
-function normalizeHex(value: string | null | undefined, fallback: string) {
-  const trimmed = String(value || "").trim();
-  return /^#([0-9A-Fa-f]{6})$/.test(trimmed) ? trimmed : fallback;
+function timeValue(value: unknown, field: string) {
+  const text = nullableText(value, field);
+  if (text && !/^\d{2}:\d{2}(?::\d{2})?$/.test(text)) {
+    throw new PatchValidationError(`${field} possui um horÃ¡rio invÃ¡lido.`);
+  }
+  return text;
 }
 
-function normalizeModelo(value: string | null | undefined) {
-  const allowed = ["classic", "romantic", "minimal", "editorial"];
-  return allowed.includes(String(value)) ? String(value) : "classic";
-}
-
-function normalizeHeroType(value: string | null | undefined) {
-  const allowed = ["none", "image", "video"];
-  return allowed.includes(String(value)) ? String(value) : "none";
-}
-
-export async function POST(request: Request) {
+export async function PATCH(request: Request) {
   const authError = await requireAdminApiUser();
   if (authError) return authError;
 
   try {
-    const body = (await request.json()) as EventoConfigPayload;
-
-    const eventoId = Number(body.evento_id);
-
-    const maxAcompanhantesRaw = Number(body.max_acompanhantes ?? 0);
-    const maxAcompanhantes = Number.isNaN(maxAcompanhantesRaw)
-      ? 0
-      : Math.min(Math.max(maxAcompanhantesRaw, 0), 10);
-
-    const overlayRaw = Number(body.hero_overlay_opacity ?? 45);
-    const heroOverlayOpacity = Number.isNaN(overlayRaw)
-      ? 45
-      : Math.min(Math.max(overlayRaw, 0), 90);
-
-    if (!eventoId) {
-      return NextResponse.json({ error: "Evento inválido." }, { status: 400 });
-    }
-
-    if (!body.nome_evento?.trim()) {
-      return NextResponse.json(
-        { error: "Informe o nome do evento." },
-        { status: 400 },
-      );
-    }
-
-    if (!body.nome_casal?.trim()) {
-      return NextResponse.json(
-        { error: "Informe o nome do casal." },
-        { status: 400 },
-      );
-    }
-
+    const { eventoId, expectedUpdatedAt, fields: received } =
+      parsePatchEnvelope(await request.json(), allFields);
     const supabase = createAdminClient();
+    const [{ data: evento, error: eventoReadError }, { data: currentConfig, error: configReadError }] =
+      await Promise.all([
+        supabase.from("eventos").select("*").eq("id", eventoId).maybeSingle(),
+        supabase
+          .from("configuracoes_evento")
+          .select("*")
+          .eq("evento_id", eventoId)
+          .maybeSingle(),
+      ]);
 
-    const { error: eventoError } = await supabase
-      .from("eventos")
-      .update({
-        slug: normalizeText(body.slug),
-        nome_evento: body.nome_evento.trim(),
-        nome_casal: body.nome_casal.trim(),
-        data_evento: normalizeText(body.data_evento),
-        horario_evento: normalizeText(body.horario_evento),
-        local_cerimonia: normalizeText(body.local_cerimonia),
-        link_maps_cerimonia: normalizeMapsLinkForStorage(
-          body.link_maps_cerimonia,
-          body.local_cerimonia,
-        ),
-        local_recepcao: normalizeText(body.local_recepcao),
-        link_maps_recepcao: normalizeMapsLinkForStorage(
-          body.link_maps_recepcao,
-          body.local_recepcao,
-        ),
-      })
-      .eq("id", eventoId);
-
-    if (eventoError) {
-      console.error("Erro ao atualizar evento:", eventoError.message);
-
-      return NextResponse.json(
-        { error: "Não foi possível atualizar os dados do evento." },
-        { status: 500 },
-      );
+    if (eventoReadError) throw eventoReadError;
+    if (configReadError) throw configReadError;
+    if (!evento) {
+      return NextResponse.json({ error: "Evento nÃ£o encontrado." }, { status: 404 });
     }
 
-    const { error: configError } = await supabase
-      .from("configuracoes_evento")
-      .upsert(
-        {
-          evento_id: eventoId,
-
-          mensagem_confirmacao: normalizeText(body.mensagem_confirmacao),
-          data_limite_confirmacao: normalizeText(body.data_limite_confirmacao),
-
-          chave_pix: normalizeText(body.chave_pix),
-          qr_pix_url: normalizeText(body.qr_pix_url),
-
-          dress_code_titulo: normalizeText(body.dress_code_titulo),
-          dress_code_descricao: normalizeText(body.dress_code_descricao),
-          dress_code_homens: normalizeText(body.dress_code_homens),
-          dress_code_mulheres: normalizeText(body.dress_code_mulheres),
-          dress_code_cores: normalizeText(body.dress_code_cores),
-          dress_code_observacao: normalizeText(body.dress_code_observacao),
-
-          max_acompanhantes: maxAcompanhantes,
-
-          cor_primaria: normalizeHex(body.cor_primaria, "#800000"),
-          cor_secundaria: normalizeHex(body.cor_secundaria, "#08265e"),
-          cor_acento: normalizeHex(body.cor_acento, "#c9a227"),
-          cor_fundo: normalizeHex(body.cor_fundo, "#fffaf8"),
-          cor_superficie: normalizeHex(body.cor_superficie, "#ffffff"),
-
-          modelo_layout: normalizeModelo(body.modelo_layout),
-
-          hero_background_type: normalizeHeroType(body.hero_background_type),
-          hero_background_url: normalizeText(body.hero_background_url),
-          hero_overlay_opacity: heroOverlayOpacity,
-        },
-        { onConflict: "evento_id" },
-      );
-
-    if (configError) {
-      console.error(
-        "Erro ao atualizar configurações do evento:",
-        configError.message,
-      );
-
-      return NextResponse.json(
-        { error: "Não foi possível atualizar as configurações do evento." },
-        { status: 500 },
-      );
-    }
-
-    return NextResponse.json(
-      { success: true, message: "Configurações salvas com sucesso." },
-      { status: 200 },
+    const hasConfigChanges = Object.keys(received).some((field) =>
+      configFieldSet.has(field),
     );
-  } catch (error) {
-    console.error("Erro inesperado ao salvar configurações:", error);
+    if (
+      hasConfigChanges &&
+      expectedUpdatedAt &&
+      currentConfig?.updated_at !== expectedUpdatedAt
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "As configuraÃ§Ãµes foram alteradas em outra aba. Recarregue antes de salvar novamente.",
+        },
+        { status: 409 },
+      );
+    }
 
+    const eventPatch: Record<string, unknown> = {};
+    const configPatch: Record<string, unknown> = {};
+
+    for (const [field, value] of Object.entries(received)) {
+      if (eventFieldSet.has(field)) {
+        if (field === "slug") {
+          const slug = requiredText(value, "Slug").toLowerCase();
+          if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+            throw new PatchValidationError(
+              "Slug deve conter apenas letras minÃºsculas, nÃºmeros e hÃ­fens.",
+            );
+          }
+          eventPatch[field] = slug;
+        } else if (field === "nome_evento" || field === "nome_casal") {
+          eventPatch[field] = requiredText(value, field);
+        } else if (field === "data_evento") {
+          eventPatch[field] = dateValue(value, field);
+        } else if (field === "horario_evento") {
+          eventPatch[field] = timeValue(value, field);
+        } else if (field === "ativo") {
+          eventPatch[field] = booleanValue(value, field);
+        } else if (!field.startsWith("link_maps_")) {
+          eventPatch[field] = nullableText(value, field);
+        }
+      } else if (field === "data_limite_confirmacao") {
+        configPatch[field] = dateValue(value, field);
+      } else if (field === "max_acompanhantes") {
+        configPatch[field] = boundedInteger(value, field, 0, 10);
+      } else {
+        configPatch[field] = nullableText(value, field);
+      }
+    }
+
+    for (const suffix of ["cerimonia", "recepcao"] as const) {
+      const linkField = `link_maps_${suffix}`;
+      const localField = `local_${suffix}`;
+      if (
+        Object.prototype.hasOwnProperty.call(received, linkField) ||
+        Object.prototype.hasOwnProperty.call(received, localField)
+      ) {
+        eventPatch[linkField] = normalizeMapsLinkForStorage(
+          Object.prototype.hasOwnProperty.call(received, linkField)
+            ? (received[linkField] as string | null)
+            : evento[linkField],
+          Object.prototype.hasOwnProperty.call(received, localField)
+            ? (eventPatch[localField] as string | null)
+            : evento[localField],
+        );
+      }
+    }
+
+    let updatedEvento = evento;
+    if (Object.keys(eventPatch).length) {
+      const { data, error } = await supabase
+        .from("eventos")
+        .update(eventPatch)
+        .eq("id", eventoId)
+        .select("*")
+        .single();
+      if (error) throw error;
+      updatedEvento = data;
+    }
+
+    let updatedConfig = currentConfig;
+    if (Object.keys(configPatch).length) {
+      const result = await patchEventConfig(
+        supabase,
+        eventoId,
+        configPatch,
+        expectedUpdatedAt,
+      );
+      if (result.conflict) {
+        return NextResponse.json(
+          {
+            error:
+              "As configuraÃ§Ãµes foram alteradas em outra aba. Recarregue antes de salvar novamente.",
+          },
+          { status: 409 },
+        );
+      }
+      updatedConfig = result.data;
+    }
+
+    revalidatePath(`/evento/${evento.slug}`);
+    revalidatePath(`/evento/${updatedEvento.slug}`);
+    revalidatePath(`/admin/eventos/${evento.slug}/configuracoes`);
+
+    return NextResponse.json({
+      success: true,
+      message: "ConfiguraÃ§Ãµes salvas com sucesso.",
+      evento: updatedEvento,
+      configuracoes: updatedConfig,
+    });
+  } catch (error) {
+    if (error instanceof PatchValidationError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    console.error("Erro inesperado ao salvar configuraÃ§Ãµes:", error);
     return NextResponse.json(
-      { error: "Erro inesperado ao salvar configurações." },
+      { error: "NÃ£o foi possÃ­vel salvar as configuraÃ§Ãµes do evento." },
       { status: 500 },
     );
   }

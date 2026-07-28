@@ -16,6 +16,8 @@ import { GallerySection } from "../../../components/event/gallery-section";
 import { PixSection } from "../../../components/event/pix-section";
 import { DressCode } from "../../../components/event/dress-code";
 import { HistorySection } from "../../../components/event/history-section";
+import { EventOpening } from "../../../components/event/event-opening";
+import { Reveal } from "../../../components/event/reveal";
 import { createEventMetadata } from "../../../lib/metadata";
 
 type EventoPageProps = {
@@ -72,85 +74,110 @@ export default async function EventoPage({ params }: EventoPageProps) {
       className={`event-page public-theme-scope public-theme-scope--${theme.modelo_layout}`}
       style={buildThemeStyle(configuracoes)}
     >
-      <HeroSection
-        nomeCasal={evento.nome_casal}
-        dataFormatada={dataFormatada}
-        horario={horario}
-        heroBackgroundType={configuracoes?.hero_background_type}
-        heroBackgroundUrl={configuracoes?.hero_background_url}
-        heroOverlayOpacity={configuracoes?.hero_overlay_opacity}
-      />
+      <EventOpening
+        key={slug}
+        eventKey={slug}
+        coupleNames={evento.nome_casal}
+        eventDate={dataFormatada}
+      >
+        <HeroSection
+          nomeCasal={evento.nome_casal}
+          dataFormatada={dataFormatada}
+          horario={horario}
+          heroBackgroundType={configuracoes?.hero_background_type}
+          heroBackgroundUrl={configuracoes?.hero_background_url}
+          heroOverlayOpacity={configuracoes?.hero_overlay_opacity}
+        />
 
-      <div className="event-container">
+        <div className="event-container">
         <div className="event-shell">
           <div className="countdown-floating countdown-floating--top">
-            <Countdown
-              dataEvento={evento.data_evento}
-              horarioEvento={evento.horario_evento}
-            />
+            <Reveal>
+              <Countdown
+                dataEvento={evento.data_evento}
+                horarioEvento={evento.horario_evento}
+              />
+            </Reveal>
           </div>
 
-          <section className="event-section event-section--info">
-            <EventInfo
-              nomeEvento={evento.nome_evento}
-              dataFormatada={dataFormatada}
-              horario={horario}
-              localCerimonia={evento.local_cerimonia}
-              localRecepcao={evento.local_recepcao}
-              linkMapsCerimonia={evento.link_maps_cerimonia}
-              linkMapsRecepcao={evento.link_maps_recepcao}
+          <Reveal>
+            <section className="event-section event-section--info">
+              <EventInfo
+                nomeEvento={evento.nome_evento}
+                dataFormatada={dataFormatada}
+                horario={horario}
+                localCerimonia={evento.local_cerimonia}
+                localRecepcao={evento.local_recepcao}
+                linkMapsCerimonia={evento.link_maps_cerimonia}
+                linkMapsRecepcao={evento.link_maps_recepcao}
+              />
+            </section>
+          </Reveal>
+
+          <Reveal>
+            <HistorySection
+              ativa={configuracoes?.historia_ativa ?? true}
+              titulo={configuracoes?.historia_titulo || null}
+              descricao={configuracoes?.historia_descricao || null}
+              modelo={configuracoes?.historia_modelo_grid || null}
+              momentos={historia}
             />
-          </section>
+          </Reveal>
 
-          <HistorySection
-            ativa={configuracoes?.historia_ativa ?? true}
-            titulo={configuracoes?.historia_titulo || null}
-            descricao={configuracoes?.historia_descricao || null}
-            modelo={configuracoes?.historia_modelo_grid || null}
-            momentos={historia}
-          />
+          <Reveal>
+            <GallerySection imagens={galeria} />
+          </Reveal>
 
-          <GallerySection imagens={galeria} />
+          <Reveal>
+            <DressCode
+              titulo={configuracoes?.dress_code_titulo || null}
+              descricao={configuracoes?.dress_code_descricao || null}
+              homens={configuracoes?.dress_code_homens || null}
+              mulheres={configuracoes?.dress_code_mulheres || null}
+              cores={configuracoes?.dress_code_cores || null}
+              observacao={configuracoes?.dress_code_observacao || null}
+            />
+          </Reveal>
 
-          <DressCode
-            titulo={configuracoes?.dress_code_titulo || null}
-            descricao={configuracoes?.dress_code_descricao || null}
-            homens={configuracoes?.dress_code_homens || null}
-            mulheres={configuracoes?.dress_code_mulheres || null}
-            cores={configuracoes?.dress_code_cores || null}
-            observacao={configuracoes?.dress_code_observacao || null}
-          />
+          <Reveal>
+            <RsvpForm
+              eventoId={evento.id}
+              dataLimiteConfirmacao={configuracoes?.data_limite_confirmacao || null}
+              mensagemConfirmacao={configuracoes?.mensagem_confirmacao || null}
+              maxAcompanhantes={configuracoes?.max_acompanhantes ?? 4}
+            />
+          </Reveal>
 
-          <RsvpForm
-            eventoId={evento.id}
-            dataLimiteConfirmacao={configuracoes?.data_limite_confirmacao || null}
-            mensagemConfirmacao={configuracoes?.mensagem_confirmacao || null}
-            maxAcompanhantes={configuracoes?.max_acompanhantes ?? 4}
-          />
+          <Reveal>
+            <GiftsSection eventoId={evento.id} presentes={presentes} />
+          </Reveal>
 
-          <GiftsSection eventoId={evento.id} presentes={presentes} />
+          <Reveal>
+            <PixSection
+              chavePix={configuracoes?.chave_pix || null}
+              qrPixUrl={configuracoes?.qr_pix_url || null}
+            />
+          </Reveal>
 
-          <PixSection
-            chavePix={configuracoes?.chave_pix || null}
-            qrPixUrl={configuracoes?.qr_pix_url || null}
-          />
+          <Reveal>
+            <footer className="event-public-footer">
+              <div className="event-public-footer__content">
+                <p>
+                  Com carinho, obrigado por fazer parte da nossa história.
+                </p>
 
-          <footer className="event-public-footer">
-            <div className="event-public-footer__content">
-              <p>
-                Com carinho, obrigado por fazer parte da nossa história.
-              </p>
-
-              <Link
-                href={`/admin/login?evento=${slug}`}
-                className="event-public-footer__admin-link"
-              >
-                Área dos noivos
-              </Link>
-            </div>
-          </footer>
+                <Link
+                  href={`/admin/login?evento=${slug}`}
+                  className="event-public-footer__admin-link"
+                >
+                  Área dos noivos
+                </Link>
+              </div>
+            </footer>
+          </Reveal>
         </div>
-      </div>
+        </div>
+      </EventOpening>
     </main>
   );
 }

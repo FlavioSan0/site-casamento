@@ -6,7 +6,7 @@ type AdminButtonProps = {
   variant?: AdminButtonVariant;
   disabled?: boolean;
   className?: string;
-  onClick?: () => void;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
 };
 
 export function AdminButton({

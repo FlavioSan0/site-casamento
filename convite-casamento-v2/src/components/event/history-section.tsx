@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { HistoriaMomento } from "../../services/historia-momentos";
 
 type HistorySectionProps = {
@@ -75,9 +76,11 @@ export function HistorySection({
         <div className="history-editorial-grid">
           <article className="history-editorial-featured">
             <div className="history-moment__image-wrap history-moment__image-wrap--featured">
-              <img
+              <Image
                 src={featured.imagem_url}
                 alt={featured.titulo || "Momento especial do casal"}
+                fill
+                sizes="(max-width: 900px) 100vw, 60vw"
                 className="history-moment__image"
               />
             </div>
@@ -89,9 +92,11 @@ export function HistorySection({
               {secondary.map((momento) => (
                 <article key={momento.id} className="history-editorial-card">
                   <div className="history-moment__image-wrap">
-                    <img
+                    <Image
                       src={momento.imagem_url}
                       alt={momento.titulo || "Momento da história do casal"}
+                      fill
+                      sizes="(max-width: 900px) 100vw, 36vw"
                       className="history-moment__image"
                     />
                   </div>
@@ -133,9 +138,11 @@ export function HistorySection({
             ) : null}
 
             <div className="history-moment__image-wrap">
-              <img
+              <Image
                 src={momento.imagem_url}
                 alt={momento.titulo || `Momento ${index + 1} da história do casal`}
+                fill
+                sizes="(max-width: 900px) 100vw, 45vw"
                 className="history-moment__image"
               />
             </div>

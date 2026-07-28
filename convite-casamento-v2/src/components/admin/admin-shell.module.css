@@ -252,6 +252,30 @@
   .sidebarInner {
     height: auto;
     gap: 20px;
+    padding: 18px;
+  }
+
+  .sidebarTop {
+    gap: 18px;
+  }
+
+  .nav {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .navItem {
+    grid-template-columns: 40px minmax(0, 1fr);
+    padding: 10px;
+  }
+
+  .navIconWrap {
+    width: 40px;
+    height: 40px;
+  }
+
+  .navDescription {
+    display: none;
   }
 
   .sidebarFooter {
@@ -284,6 +308,12 @@
     font-size: 1.6rem;
   }
 
+  .sidebarDescription,
+  .topbarSubtitle {
+    font-size: 0.94rem;
+    line-height: 1.55;
+  }
+
   .topbarTitle {
     font-size: 1.5rem;
   }
@@ -293,9 +323,38 @@
     border-radius: 16px;
   }
 
+  .nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .navItem {
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .navIconWrap {
+    width: 36px;
+    height: 36px;
+  }
+
+  .navTitle {
+    font-size: 0.95rem;
+  }
+
   .publicLink {
     min-height: 50px;
     border-radius: 16px;
+  }
+}
+
+@media (max-width: 360px) {
+  .nav {
+    grid-template-columns: 1fr;
+  }
+
+  .navItem {
+    grid-template-columns: 36px minmax(0, 1fr);
   }
 }
 .logoutButton {
