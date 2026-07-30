@@ -79,6 +79,7 @@ create table if not exists public.configuracoes_evento (
   dress_code_homens text,
   dress_code_mulheres text,
   dress_code_cores text,
+  dress_code_cores_paleta jsonb not null default '[{"nome":"Azul-marinho","cor":"#08265E"},{"nome":"Bordô","cor":"#800000"},{"nome":"Verde","cor":"#3F6B4A"}]'::jsonb,
   dress_code_observacao text,
   max_acompanhantes integer not null default 4 check (max_acompanhantes between 0 and 10),
   cor_primaria text default '#800000',
@@ -109,6 +110,7 @@ alter table public.configuracoes_evento add column if not exists dress_code_desc
 alter table public.configuracoes_evento add column if not exists dress_code_homens text;
 alter table public.configuracoes_evento add column if not exists dress_code_mulheres text;
 alter table public.configuracoes_evento add column if not exists dress_code_cores text;
+alter table public.configuracoes_evento add column if not exists dress_code_cores_paleta jsonb default '[{"nome":"Azul-marinho","cor":"#08265E"},{"nome":"Bordô","cor":"#800000"},{"nome":"Verde","cor":"#3F6B4A"}]'::jsonb;
 alter table public.configuracoes_evento add column if not exists dress_code_observacao text;
 alter table public.configuracoes_evento add column if not exists max_acompanhantes integer default 4;
 alter table public.configuracoes_evento add column if not exists cor_primaria text default '#800000';
@@ -139,6 +141,7 @@ insert into public.configuracoes_evento (
   dress_code_homens,
   dress_code_mulheres,
   dress_code_cores,
+  dress_code_cores_paleta,
   dress_code_observacao,
   max_acompanhantes,
   cor_primaria,
@@ -166,6 +169,7 @@ select
   'Camisa social; calça de sarja ou alfaiataria; sapato social ou mocassim; blazer opcional. Evitar bermuda, jeans e boné.',
   'Vestido longo ou midi; saia longa com blusa elegante; salto ou rasteira refinada. Evitar peças muito curtas e transparências excessivas.',
   'Evite vermelho bordô, azul marinho e verde.',
+  '[{"nome":"Azul-marinho","cor":"#08265E"},{"nome":"Bordô","cor":"#800000"},{"nome":"Verde","cor":"#3F6B4A"}]'::jsonb,
   'As cores reservadas fazem parte da identidade visual do casamento.',
   4,
   '#800000',

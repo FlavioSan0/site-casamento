@@ -1,9 +1,15 @@
+import {
+  normalizeReservedDressColors,
+  type ReservedDressColor,
+} from "../../lib/utils/reserved-colors";
+
 type DressCodeProps = {
   titulo: string | null;
   descricao: string | null;
   homens: string | null;
   mulheres: string | null;
   cores: string | null;
+  coresPaleta?: ReservedDressColor[] | null;
   observacao: string | null;
 };
 
@@ -22,6 +28,7 @@ export function DressCode({
   homens,
   mulheres,
   cores,
+  coresPaleta,
   observacao,
 }: DressCodeProps) {
   const tituloFinal = titulo || "Esporte fino";
@@ -49,7 +56,9 @@ Evitar vestidos curtos, roupas muito justas e transparências excessivas`,
 
   const coresFinal =
     cores ||
-    "Pedimos com carinho que evitem tons muito próximos ao azul marinho e ao bordô, que fazem parte da identidade visual do nosso casamento.";
+    "Pedimos com carinho que evitem tons muito próximos às cores abaixo, que fazem parte da identidade visual do nosso casamento.";
+
+  const paletaFinal = normalizeReservedDressColors(coresPaleta);
 
   const observacaoFinal =
     observacao ||
@@ -106,21 +115,47 @@ Evitar vestidos curtos, roupas muito justas e transparências excessivas`,
           </article>
         </div>
 
-        <article className="dress-code-refined__colors">
-          <span className="dress-code-refined__colors-badge">
-            Orientação de cores
-          </span>
+        <div className="dress-code-refined__guidance">
+          <div className="dress-code-refined__colors">
+            <span className="dress-code-refined__colors-badge">
+              Orientação de cores
+            </span>
 
-          <h3 className="dress-code-refined__colors-title">Cores reservadas</h3>
+            <h3 className="dress-code-refined__colors-title">
+              Cores reservadas
+            </h3>
 
-          <p className="dress-code-refined__colors-text">{coresFinal}</p>
-        </article>
+            {paletaFinal.length ? (
+              <div
+                className="dress-code-refined__swatches"
+                aria-label="Cores reservadas para o casamento"
+              >
+                {paletaFinal.map((item, index) => (
+                  <span
+                    className="dress-code-refined__swatch"
+                    key={`${item.nome}-${item.cor}-${index}`}
+                    title={`${item.nome}: ${item.cor}`}
+                  >
+                    <span
+                      className="dress-code-refined__swatch-dot"
+                      style={{ backgroundColor: item.cor }}
+                      aria-hidden="true"
+                    />
+                    <span>{item.nome || `Cor ${index + 1}`}</span>
+                  </span>
+                ))}
+              </div>
+            ) : null}
 
-        {observacaoFinal ? (
-          <div className="dress-code-refined__note">
-            <p>{observacaoFinal}</p>
+            <p className="dress-code-refined__colors-text">{coresFinal}</p>
           </div>
-        ) : null}
+
+          {observacaoFinal ? (
+            <div className="dress-code-refined__note">
+              <p>{observacaoFinal}</p>
+            </div>
+          ) : null}
+        </div>
       </div>
     </section>
   );

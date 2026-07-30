@@ -75,6 +75,7 @@ export function GiftsSection({ eventoId, presentes }: GiftsSectionProps) {
   const [giftList, setGiftList] = useState<Presente[]>(presentes);
   const [nomesReserva, setNomesReserva] = useState<Record<number, string>>({});
   const [loadingId, setLoadingId] = useState<number | null>(null);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
   const [feedbackByGift, setFeedbackByGift] = useState<Record<number, FeedbackState>>({});
 
   const presentesOrdenados = useMemo(() => {
@@ -170,6 +171,7 @@ export function GiftsSection({ eventoId, presentes }: GiftsSectionProps) {
         ...prev,
         [presente.id]: "",
       }));
+      setExpandedId(null);
     } catch (error) {
       const message =
         error instanceof Error
@@ -204,7 +206,7 @@ export function GiftsSection({ eventoId, presentes }: GiftsSectionProps) {
       </div>
 
       <div className="gift-grid-refined gift-grid-refined--enhanced">
-        {presentesOrdenados.map((presente) => {
+        {presentesOrdenados.map((presente, index) => {
           const disponibilidade = getDisponibilidade(presente);
           const feedback = feedbackByGift[presente.id];
           const loading = loadingId === presente.id;
@@ -213,6 +215,8 @@ export function GiftsSection({ eventoId, presentes }: GiftsSectionProps) {
           return (
             <article
               key={presente.id}
+              data-reveal-item
+              style={{ "--gift-reveal-index": Math.min(index, 5) } as React.CSSProperties}
               className={`gift-card-refined ${
                 !disponibilidade.disponivel ? "gift-card-refined--disabled" : ""
               }`}
@@ -281,39 +285,75 @@ export function GiftsSection({ eventoId, presentes }: GiftsSectionProps) {
                   </div>
                 ) : null}
 
-                <div className="gift-card-refined__form">
-                  <input
-                    type="text"
-                    className="gift-input"
-                    placeholder="Seu nome para reservar"
-                    value={nomesReserva[presente.id] || ""}
-                    onChange={(event) =>
-                      setNomesReserva((prev) => ({
-                        ...prev,
-                        [presente.id]: event.target.value,
-                      }))
-                    }
-                    maxLength={120}
-                    autoComplete="name"
-                    aria-label={`Seu nome para reservar ${presente.nome}`}
-                    disabled={loading || !disponibilidade.disponivel}
-                  />
+                {disponibilidade.disponivel ? (
+                  <div className="gift-card-refined__reservation">
+                    <button
+                      type="button"
+                      className="event-button event-button--secondary gift-card-refined__toggle"
+                      aria-expanded={expandedId === presente.id}
+                      aria-controls={`gift-reservation-${presente.id}`}
+                      onClick={() =>
+                        setExpandedId((current) =>
+                          current === presente.id ? null : presente.id,
+                        )
+                      }
+                    >
+                      {expandedId === presente.id
+                        ? "Fechar reserva"
+                        : presente.usa_cotas
+                          ? "Quero reservar uma cota"
+                          : "Quero reservar"}
+                    </button>
 
-                  <button
-                    type="button"
-                    className={`event-button gift-card-refined__button ${
-                      !disponibilidade.disponivel ? "event-button--disabled" : ""
-                    }`}
-                    onClick={() => reservarPresente(presente)}
-                    disabled={loading || !disponibilidade.disponivel}
-                  >
-                    {loading
-                      ? "Reservando..."
-                      : presente.usa_cotas
-                        ? "Reservar 1 cota"
-                        : "Reservar presente"}
-                  </button>
-                </div>
+                    {expandedId === presente.id ? (
+                      <div
+                        id={`gift-reservation-${presente.id}`}
+                        className="gift-card-refined__form"
+                      >
+                        <label
+                          className="gift-card-refined__form-label"
+                          htmlFor={`gift-reserved-by-${presente.id}`}
+                        >
+                          Nome de quem está reservando
+                        </label>
+
+                        <input
+                          id={`gift-reserved-by-${presente.id}`}
+                          type="text"
+                          className="gift-input"
+                          placeholder="Digite seu nome"
+                          value={nomesReserva[presente.id] || ""}
+                          onChange={(event) =>
+                            setNomesReserva((prev) => ({
+                              ...prev,
+                              [presente.id]: event.target.value,
+                            }))
+                          }
+                          maxLength={120}
+                          autoComplete="name"
+                          disabled={loading}
+                        />
+
+                        <button
+                          type="button"
+                          className="event-button gift-card-refined__button"
+                          onClick={() => reservarPresente(presente)}
+                          disabled={loading}
+                        >
+                          {loading
+                            ? "Reservando..."
+                            : presente.usa_cotas
+                              ? "Confirmar 1 cota"
+                              : "Confirmar presente"}
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : (
+                  <div className="gift-card-refined__unavailable" role="status">
+                    Este presente já foi reservado.
+                  </div>
+                )}
 
                 {feedback?.message ? (
                   <p

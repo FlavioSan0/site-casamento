@@ -7,6 +7,12 @@ import { AdminField } from "./ui/admin-field";
 import { buildMapsUrl } from "../../lib/utils/maps";
 import { buildChangedPatch } from "../../lib/utils/config-patch";
 import { useUnsavedChanges } from "./use-unsaved-changes";
+import {
+  DEFAULT_RESERVED_DRESS_COLORS,
+  MAX_RESERVED_DRESS_COLORS,
+  normalizeReservedDressColors,
+  type ReservedDressColor,
+} from "../../lib/utils/reserved-colors";
 
 type EventSettingsFormProps = {
   evento: {
@@ -31,6 +37,7 @@ type EventSettingsFormProps = {
     dress_code_homens: string | null;
     dress_code_mulheres: string | null;
     dress_code_cores: string | null;
+    dress_code_cores_paleta: ReservedDressColor[] | null;
     dress_code_observacao: string | null;
     max_acompanhantes: number | null;
     updated_at?: string | null;
@@ -57,6 +64,7 @@ type FormState = {
   dress_code_homens: string;
   dress_code_mulheres: string;
   dress_code_cores: string;
+  dress_code_cores_paleta: ReservedDressColor[];
   dress_code_observacao: string;
   max_acompanhantes: string;
 };
@@ -80,6 +88,7 @@ const editableFields = [
   "dress_code_homens",
   "dress_code_mulheres",
   "dress_code_cores",
+  "dress_code_cores_paleta",
   "dress_code_observacao",
   "max_acompanhantes",
 ] as const satisfies readonly (keyof FormState)[];
@@ -118,6 +127,9 @@ export function EventSettingsForm({
     dress_code_homens: configuracoes?.dress_code_homens || "",
     dress_code_mulheres: configuracoes?.dress_code_mulheres || "",
     dress_code_cores: configuracoes?.dress_code_cores || "",
+    dress_code_cores_paleta: normalizeReservedDressColors(
+      configuracoes?.dress_code_cores_paleta,
+    ),
     dress_code_observacao: configuracoes?.dress_code_observacao || "",
     max_acompanhantes: String(configuracoes?.max_acompanhantes ?? 4),
   });
@@ -147,6 +159,61 @@ export function EventSettingsForm({
     setForm((prev) => ({
       ...prev,
       [field]: value,
+    }));
+  }
+
+  function updateReservedColor(
+    index: number,
+    field: keyof ReservedDressColor,
+    value: string,
+  ) {
+    setForm((prev) => ({
+      ...prev,
+      dress_code_cores_paleta: prev.dress_code_cores_paleta.map((item, itemIndex) =>
+        itemIndex === index
+          ? {
+              ...item,
+              [field]:
+                field === "cor"
+                  ? value.toUpperCase().slice(0, 7)
+                  : value.slice(0, 40),
+            }
+          : item,
+      ),
+    }));
+  }
+
+  function addReservedColor() {
+    setForm((prev) => {
+      if (prev.dress_code_cores_paleta.length >= MAX_RESERVED_DRESS_COLORS) {
+        return prev;
+      }
+
+      const fallback =
+        DEFAULT_RESERVED_DRESS_COLORS[
+          prev.dress_code_cores_paleta.length %
+            DEFAULT_RESERVED_DRESS_COLORS.length
+        ];
+
+      return {
+        ...prev,
+        dress_code_cores_paleta: [
+          ...prev.dress_code_cores_paleta,
+          {
+            nome: `Cor reservada ${prev.dress_code_cores_paleta.length + 1}`,
+            cor: fallback.cor,
+          },
+        ],
+      };
+    });
+  }
+
+  function removeReservedColor(index: number) {
+    setForm((prev) => ({
+      ...prev,
+      dress_code_cores_paleta: prev.dress_code_cores_paleta.filter(
+        (_, itemIndex) => itemIndex !== index,
+      ),
     }));
   }
 
@@ -253,6 +320,11 @@ export function EventSettingsForm({
         ...(result.evento || {}),
         ...(result.configuracoes || {}),
         evento_id: form.evento_id,
+        dress_code_cores_paleta: normalizeReservedDressColors(
+          result.configuracoes?.dress_code_cores_paleta ??
+            form.dress_code_cores_paleta,
+          [],
+        ),
         max_acompanhantes: String(
           result.configuracoes?.max_acompanhantes ?? form.max_acompanhantes,
         ),
@@ -562,9 +634,9 @@ Evitar vestidos curtos, roupas muito justas e transparências excessivas`}
 
           <div className="admin-form-grid-full">
             <AdminField
-              label="Cores reservadas"
+              label="Texto das cores reservadas"
               htmlFor="dress_code_cores"
-              hint="Informe cores que devem ser evitadas por serem reservadas aos noivos, padrinhos ou família."
+              hint="Mensagem exibida ao lado da paleta visual."
             >
               <textarea
                 id="dress_code_cores"
@@ -573,8 +645,109 @@ Evitar vestidos curtos, roupas muito justas e transparências excessivas`}
                 onChange={(e) =>
                   handleChange("dress_code_cores", e.target.value)
                 }
-                placeholder="Ex.: Pedimos que evitem tons muito próximos ao azul marinho e ao bordô, pois serão reservados para composições específicas da cerimônia."
+                placeholder="Ex.: Pedimos que evitem tons muito próximos às cores abaixo, pois fazem parte da identidade visual do casamento."
               />
+            </AdminField>
+          </div>
+
+          <div className="admin-form-grid-full">
+            <AdminField
+              label="Bolinhas das cores reservadas"
+              hint={`Adicione, remova e escolha até ${MAX_RESERVED_DRESS_COLORS} cores. A ordem abaixo será mantida no convite.`}
+            >
+              <div className="admin-reserved-colors-editor">
+                <div className="admin-reserved-colors-editor__list">
+                  {form.dress_code_cores_paleta.map((item, index) => (
+                    <div
+                      className="admin-reserved-color-row"
+                      key={index}
+                    >
+                      <div
+                        className="admin-reserved-color-row__preview"
+                        style={{ backgroundColor: item.cor }}
+                        aria-hidden="true"
+                      />
+
+                      <input
+                        type="color"
+                        value={item.cor}
+                        aria-label={`Selecionar cor reservada ${index + 1}`}
+                        onChange={(event) =>
+                          updateReservedColor(index, "cor", event.target.value)
+                        }
+                      />
+
+                      <input
+                        type="text"
+                        value={item.cor}
+                        aria-label={`Código hexadecimal da cor reservada ${index + 1}`}
+                        readOnly
+                      />
+
+                      <input
+                        type="text"
+                        value={item.nome}
+                        maxLength={40}
+                        aria-label={`Nome da cor reservada ${index + 1}`}
+                        placeholder={`Cor reservada ${index + 1}`}
+                        onChange={(event) =>
+                          updateReservedColor(index, "nome", event.target.value)
+                        }
+                      />
+
+                      <AdminButton
+                        type="button"
+                        variant="ghost"
+                        className="admin-reserved-color-row__remove"
+                        onClick={() => removeReservedColor(index)}
+                      >
+                        Remover
+                      </AdminButton>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="admin-reserved-colors-editor__footer">
+                  <span>
+                    {form.dress_code_cores_paleta.length} de{" "}
+                    {MAX_RESERVED_DRESS_COLORS} cores
+                  </span>
+
+                  <AdminButton
+                    type="button"
+                    variant="secondary"
+                    onClick={addReservedColor}
+                    disabled={
+                      form.dress_code_cores_paleta.length >=
+                      MAX_RESERVED_DRESS_COLORS
+                    }
+                  >
+                    Adicionar cor
+                  </AdminButton>
+                </div>
+
+                <div
+                  className="admin-reserved-colors-editor__preview"
+                  aria-label="Prévia das cores reservadas"
+                >
+                  {form.dress_code_cores_paleta.length ? (
+                    form.dress_code_cores_paleta.map((item, index) => (
+                      <span
+                        className="admin-reserved-colors-editor__chip"
+                        key={`${item.nome}-${index}`}
+                      >
+                        <span
+                          style={{ backgroundColor: item.cor }}
+                          aria-hidden="true"
+                        />
+                        {item.nome || `Cor ${index + 1}`}
+                      </span>
+                    ))
+                  ) : (
+                    <small>Nenhuma bolinha será exibida no convite.</small>
+                  )}
+                </div>
+              </div>
             </AdminField>
           </div>
 

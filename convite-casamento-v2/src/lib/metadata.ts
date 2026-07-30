@@ -33,8 +33,17 @@ function getPublicSiteUrl() {
 }
 
 function formatLongDate(value: string | null | undefined) {
-  const date = new Date(`${value || FALLBACK_DATE}T00:00:00`);
-  if (Number.isNaN(date.getTime())) return "15 de agosto de 2026";
+  const normalized = value || FALLBACK_DATE;
+  const [year, month, day] = normalized.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day, 12));
+  if (
+    !Number.isInteger(year) ||
+    !Number.isInteger(month) ||
+    !Number.isInteger(day) ||
+    Number.isNaN(date.getTime())
+  ) {
+    return "15 de agosto de 2026";
+  }
 
   return new Intl.DateTimeFormat("pt-BR", {
     day: "numeric",

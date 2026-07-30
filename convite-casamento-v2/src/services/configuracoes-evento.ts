@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { createClient } from "../lib/supabase/server";
+import type { ReservedDressColor } from "../lib/utils/reserved-colors";
 
 export type ConfiguracaoEvento = {
   id?: number;
@@ -16,6 +17,7 @@ export type ConfiguracaoEvento = {
   dress_code_homens: string | null;
   dress_code_mulheres: string | null;
   dress_code_cores: string | null;
+  dress_code_cores_paleta: ReservedDressColor[] | null;
   dress_code_observacao: string | null;
 
   max_acompanhantes: number | null;

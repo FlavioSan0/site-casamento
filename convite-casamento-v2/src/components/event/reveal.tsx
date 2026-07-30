@@ -6,6 +6,7 @@ import { useEventMotionReady } from "./event-opening";
 type RevealProps = {
   children: React.ReactNode;
   className?: string;
+  variant?: "section" | "children";
 };
 
 const revealElements = new Set<HTMLElement>();
@@ -31,13 +32,17 @@ function observeReveal(element: HTMLElement) {
         stopObserving(target);
       });
     },
-    { rootMargin: "0px 0px -8% 0px", threshold: 0.08 },
+    { rootMargin: "0px 0px -6% 0px", threshold: 0.06 },
   );
   revealObserver.observe(element);
   return () => stopObserving(element);
 }
 
-export function Reveal({ children, className = "" }: RevealProps) {
+export function Reveal({
+  children,
+  className = "",
+  variant = "section",
+}: RevealProps) {
   const ref = useRef<HTMLDivElement>(null);
   const motionReady = useEventMotionReady();
 
@@ -53,7 +58,7 @@ export function Reveal({ children, className = "" }: RevealProps) {
     }
 
     const rect = element.getBoundingClientRect();
-    if (rect.top <= window.innerHeight * 0.92) {
+    if (rect.top <= window.innerHeight * 0.94) {
       element.dataset.revealVisible = "true";
       return;
     }
@@ -65,6 +70,7 @@ export function Reveal({ children, className = "" }: RevealProps) {
   return (
     <div
       ref={ref}
+      data-reveal-variant={variant}
       className={`reveal${className ? ` ${className}` : ""}`}
     >
       {children}

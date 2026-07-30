@@ -12,6 +12,7 @@ import {
   requiredText,
 } from "../../../../lib/utils/config-patch";
 import { normalizeMapsLinkForStorage } from "../../../../lib/utils/maps";
+import { validateReservedDressColors } from "../../../../lib/utils/reserved-colors";
 
 const eventFields = [
   "slug",
@@ -36,6 +37,7 @@ const configFields = [
   "dress_code_homens",
   "dress_code_mulheres",
   "dress_code_cores",
+  "dress_code_cores_paleta",
   "dress_code_observacao",
   "max_acompanhantes",
 ] as const;
@@ -129,6 +131,16 @@ export async function PATCH(request: Request) {
         configPatch[field] = dateValue(value, field);
       } else if (field === "max_acompanhantes") {
         configPatch[field] = boundedInteger(value, field, 0, 10);
+      } else if (field === "dress_code_cores_paleta") {
+        try {
+          configPatch[field] = validateReservedDressColors(value);
+        } catch (validationError) {
+          throw new PatchValidationError(
+            validationError instanceof Error
+              ? validationError.message
+              : "Paleta de cores reservadas inválida.",
+          );
+        }
       } else {
         configPatch[field] = nullableText(value, field);
       }

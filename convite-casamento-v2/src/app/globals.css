@@ -5062,3 +5062,572 @@ video {
     transition: none;
   }
 }
+
+
+/* =========================================================
+   REFINO 2026-07-30: CORES RESERVADAS, PRESENTES E MOBILE
+========================================================= */
+.dress-code-refined__guidance {
+  display: grid;
+  gap: 14px;
+  padding-top: 4px;
+  border-top: 1px solid color-mix(in srgb, var(--theme-secondary) 10%, transparent);
+}
+
+.dress-code-refined__colors {
+  padding: 22px 0 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.dress-code-refined__swatches {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 16px;
+  max-width: 760px;
+  margin: 6px auto 2px;
+}
+
+.dress-code-refined__swatch {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 36px;
+  color: color-mix(in srgb, var(--theme-secondary) 76%, transparent);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.dress-code-refined__swatch-dot {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  border: 2px solid rgba(255, 255, 255, 0.96);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 1px rgba(8, 38, 94, 0.16),
+    0 4px 12px rgba(8, 38, 94, 0.12);
+}
+
+.dress-code-refined__note {
+  padding: 14px 0 0;
+  border-top: 1px dashed color-mix(in srgb, var(--theme-secondary) 14%, transparent);
+  color: var(--theme-secondary, #08265e);
+}
+
+.dress-code-refined__note p {
+  margin: 0;
+  line-height: 1.65;
+  font-size: 0.96rem;
+}
+
+/* Editor administrativo da paleta de cores reservadas */
+.admin-reserved-colors-editor {
+  display: grid;
+  gap: 16px;
+}
+
+.admin-reserved-colors-editor__list {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-reserved-color-row {
+  display: grid;
+  grid-template-columns: 34px 52px 118px minmax(160px, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 16px;
+  background: #f8fafc;
+}
+
+.admin-reserved-color-row__preview {
+  width: 28px;
+  height: 28px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 1px rgba(15, 23, 42, 0.16),
+    0 4px 10px rgba(15, 23, 42, 0.1);
+}
+
+.admin-reserved-color-row input[type="color"] {
+  width: 52px;
+  min-width: 52px;
+  height: 44px;
+  padding: 4px;
+  cursor: pointer;
+}
+
+.admin-reserved-color-row__remove {
+  min-height: 44px;
+  white-space: nowrap;
+}
+
+.admin-reserved-colors-editor__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-reserved-colors-editor__footer > span {
+  color: #64748b;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.admin-reserved-colors-editor__preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 52px;
+  padding: 12px;
+  border: 1px dashed rgba(15, 23, 42, 0.15);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.admin-reserved-colors-editor__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.admin-reserved-colors-editor__chip > span {
+  width: 16px;
+  height: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  border-radius: 50%;
+}
+
+/* Reveal por filhos: o container fica estável e somente os cards surgem. */
+.reveal[data-reveal-variant="children"] {
+  opacity: 1;
+  translate: none;
+}
+
+.reveal[data-reveal-variant="children"][data-reveal-ready="true"]
+  [data-reveal-item] {
+  opacity: 0;
+  translate: 0 16px;
+}
+
+.reveal[data-reveal-variant="children"][data-reveal-visible="true"]
+  [data-reveal-item] {
+  opacity: 1;
+  translate: 0 0;
+  transition:
+    opacity 480ms var(--motion-ease-standard, ease),
+    translate 480ms var(--motion-ease-standard, ease);
+  transition-delay: calc(var(--gift-reveal-index, 0) * 55ms);
+}
+
+.gift-card-refined__reservation {
+  display: grid;
+  gap: 12px;
+}
+
+.gift-card-refined__toggle {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid color-mix(in srgb, var(--theme-primary) 24%, transparent);
+  background: color-mix(in srgb, var(--theme-primary) 7%, #fff);
+  color: var(--theme-primary);
+  box-shadow: none;
+}
+
+.gift-card-refined__form {
+  padding-top: 2px;
+}
+
+.gift-card-refined__form-label {
+  color: var(--theme-secondary);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.gift-card-refined__unavailable {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--theme-primary) 7%, #fff);
+  color: color-mix(in srgb, var(--theme-primary) 82%, #1f2937);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  .admin-reserved-color-row {
+    grid-template-columns: 30px 48px minmax(0, 1fr) auto;
+  }
+
+  .admin-reserved-color-row input[type="text"]:first-of-type {
+    grid-column: 3 / 4;
+  }
+
+  .admin-reserved-color-row input[type="text"]:last-of-type {
+    grid-column: 1 / -1;
+  }
+
+  .admin-reserved-color-row__remove {
+    grid-column: 4;
+    grid-row: 1 / 2;
+  }
+}
+
+@media (max-width: 640px) {
+  .event-shell {
+    width: min(100%, calc(100% - 20px));
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+
+  .event-section,
+  .event-section--info,
+  .rsvp-section {
+    padding: 18px 16px;
+    border-radius: 20px;
+  }
+
+  .section-header {
+    margin-bottom: 18px;
+  }
+
+  .section-badge,
+  .event-section-badge {
+    min-height: 30px;
+    margin-bottom: 10px;
+    padding: 0 11px;
+    font-size: 0.69rem;
+  }
+
+  .section-title,
+  .event-section-title,
+  .gifts-section-refined__copy .section-title {
+    font-size: clamp(1.72rem, 8.2vw, 2.2rem);
+  }
+
+  .section-description,
+  .event-section-description {
+    font-size: 0.94rem;
+    line-height: 1.58;
+  }
+
+  .dress-code-refined {
+    gap: 16px;
+  }
+
+  .dress-code-refined__header {
+    gap: 9px;
+  }
+
+  .dress-code-refined__grid {
+    gap: 0;
+  }
+
+  .dress-code-refined__card {
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 8px 12px;
+    padding: 14px 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .dress-code-refined__card + .dress-code-refined__card {
+    border-top: 1px solid color-mix(in srgb, var(--theme-secondary) 10%, transparent);
+  }
+
+  .dress-code-refined__icon {
+    grid-row: 1 / span 2;
+    width: 42px;
+    height: 42px;
+    border-radius: 13px;
+    font-size: 1.22rem;
+  }
+
+  .dress-code-refined__card-title {
+    align-self: center;
+    font-size: 1.35rem;
+  }
+
+  .dress-code-refined__list,
+  .dress-code-refined__empty {
+    grid-column: 1 / -1;
+  }
+
+  .dress-code-refined__list {
+    gap: 7px;
+    margin: 2px 0 0;
+    padding-left: 20px;
+  }
+
+  .dress-code-refined__list li {
+    font-size: 0.91rem;
+    line-height: 1.48;
+  }
+
+  .dress-code-refined__guidance {
+    gap: 10px;
+  }
+
+  .dress-code-refined__colors {
+    gap: 8px;
+    padding: 16px 0 0;
+  }
+
+  .dress-code-refined__colors-title {
+    font-size: 1.4rem;
+  }
+
+  .dress-code-refined__colors-badge {
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+  }
+
+  .dress-code-refined__swatches {
+    justify-content: flex-start;
+    gap: 8px 12px;
+    margin: 2px 0;
+  }
+
+  .dress-code-refined__swatch {
+    min-height: 32px;
+    gap: 7px;
+    font-size: 0.82rem;
+  }
+
+  .dress-code-refined__swatch-dot {
+    width: 20px;
+    height: 20px;
+    flex-basis: 20px;
+  }
+
+  .dress-code-refined__colors-text,
+  .dress-code-refined__note p {
+    font-size: 0.9rem;
+    line-height: 1.55;
+    text-align: left;
+  }
+
+  .gifts-section-refined {
+    gap: 16px;
+  }
+
+  .gift-grid-refined,
+  .gift-grid-refined--enhanced {
+    gap: 12px;
+    margin-top: 0;
+  }
+
+  .gift-card-refined {
+    border-radius: 18px;
+  }
+
+  .gift-card-refined__image-wrap {
+    aspect-ratio: 2 / 1;
+    max-height: 168px;
+  }
+
+  .gift-card-refined__body {
+    gap: 11px;
+    padding: 14px;
+  }
+
+  .gift-card-refined__top {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .gift-card-refined__title {
+    font-size: 1.08rem;
+  }
+
+  .gift-card-refined__price,
+  .gift-card-refined__description {
+    font-size: 0.88rem;
+  }
+
+  .gift-card-refined__description {
+    line-height: 1.5;
+  }
+
+  .gift-status {
+    min-height: 28px;
+    padding: 0 9px;
+    font-size: 0.68rem;
+  }
+
+  .gift-card-refined__cotas {
+    gap: 7px;
+    padding: 10px 12px;
+    border-radius: 13px;
+  }
+
+  .gift-card-refined__cotas-line {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .gift-card-refined__cotas-line strong,
+  .gift-card-refined__cotas-line span {
+    font-size: 0.82rem;
+  }
+
+  .gift-card-refined__cotas-bar {
+    height: 7px;
+  }
+
+  .gift-card-refined__toggle,
+  .gift-card-refined__button {
+    min-height: 46px;
+  }
+
+  .section-note-inline {
+    gap: 3px;
+    padding: 12px 0 0;
+    border: 0;
+    border-top: 1px dashed color-mix(in srgb, var(--theme-secondary) 13%, transparent);
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .section-note-inline strong {
+    font-size: 0.9rem;
+  }
+
+  .section-note-inline p {
+    font-size: 0.86rem;
+    line-height: 1.48;
+  }
+
+  .admin-reserved-colors-editor__footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-reserved-colors-editor__footer .admin-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 420px) {
+  .admin-reserved-color-row {
+    grid-template-columns: 30px 46px minmax(0, 1fr);
+  }
+
+  .admin-reserved-color-row__remove {
+    grid-column: 1 / -1;
+    grid-row: auto;
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal[data-reveal-variant="children"] [data-reveal-item],
+  .reveal[data-reveal-variant="children"][data-reveal-ready="true"]
+    [data-reveal-item],
+  .reveal[data-reveal-variant="children"][data-reveal-visible="true"]
+    [data-reveal-item] {
+    opacity: 1;
+    translate: none;
+    transition: none;
+  }
+}
+
+
+@media (max-width: 640px) {
+  .hero-section,
+  .public-theme-scope--classic .hero-section,
+  .public-theme-scope--romantic .hero-section,
+  .public-theme-scope--editorial .hero-section {
+    min-height: 68dvh;
+  }
+
+  .hero-inner {
+    padding: 78px 16px 58px;
+  }
+
+  .countdown-floating,
+  .countdown-floating--top {
+    margin-top: -26px;
+  }
+
+  .countdown-card {
+    padding: 12px;
+  }
+
+  .countdown-label {
+    margin-bottom: 10px;
+  }
+
+  .countdown-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .countdown-item {
+    min-width: 0;
+    padding: 12px 4px;
+    border-radius: 14px;
+  }
+
+  .countdown-item strong {
+    font-size: 1.42rem;
+  }
+
+  .countdown-item span {
+    font-size: 0.55rem;
+    letter-spacing: 0.08em;
+  }
+
+  .history-editorial-grid,
+  .history-mosaico-grid,
+  .history-timeline-grid {
+    gap: 12px;
+    margin-top: 18px;
+  }
+
+  .history-moment__image-wrap,
+  .history-moment__image-wrap--featured,
+  .history-mosaico-card--featured .history-moment__image-wrap {
+    min-height: min(70vw, 300px);
+  }
+
+  .history-moment__copy {
+    padding: 15px 16px 17px;
+  }
+
+  .history-moment__description {
+    margin-top: 7px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .gallery-grid-refined {
+    gap: 8px;
+  }
+
+  .gallery-grid-refined > .gallery-card:first-child {
+    min-height: min(66vw, 280px);
+  }
+
+  .gallery-grid-refined > .gallery-card:not(:first-child) {
+    min-height: min(42vw, 180px);
+  }
+}

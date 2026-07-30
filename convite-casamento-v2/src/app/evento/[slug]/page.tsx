@@ -135,6 +135,7 @@ export default async function EventoPage({ params }: EventoPageProps) {
               homens={configuracoes?.dress_code_homens || null}
               mulheres={configuracoes?.dress_code_mulheres || null}
               cores={configuracoes?.dress_code_cores || null}
+              coresPaleta={configuracoes?.dress_code_cores_paleta || null}
               observacao={configuracoes?.dress_code_observacao || null}
             />
           </Reveal>
@@ -148,7 +149,7 @@ export default async function EventoPage({ params }: EventoPageProps) {
             />
           </Reveal>
 
-          <Reveal>
+          <Reveal variant="children" className="reveal--gifts">
             <GiftsSection eventoId={evento.id} presentes={presentes} />
           </Reveal>
 
