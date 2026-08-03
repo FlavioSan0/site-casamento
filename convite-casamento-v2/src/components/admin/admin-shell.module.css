@@ -587,3 +587,230 @@
     max-width: 54vw;
   }
 }
+
+/* =========================================================
+   NAVEGAÇÃO MOBILE — MENU INFERIOR FIXO
+========================================================= */
+.bottomNav {
+  display: none;
+}
+
+@media (max-width: 860px) {
+  .shell {
+    display: block;
+    min-height: 100dvh;
+    padding-bottom: calc(72px + env(safe-area-inset-bottom));
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .main {
+    min-height: calc(100dvh - 72px - env(safe-area-inset-bottom));
+  }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    border-bottom-color: rgba(213, 221, 234, 0.86);
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(18px) saturate(145%);
+  }
+
+  .topbarContent {
+    min-height: 64px;
+    padding: 9px 14px;
+    gap: 10px;
+  }
+
+  .topbarInfo {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .topbarEyebrow {
+    margin: 0;
+    font-size: 0.61rem;
+    letter-spacing: 0.14em;
+  }
+
+  .topbarTitle {
+    max-width: min(62vw, 420px);
+    font-size: 1.04rem;
+    line-height: 1.2;
+  }
+
+  .topbarSubtitle {
+    display: none;
+  }
+
+  .topbarActions {
+    margin-left: auto;
+    gap: 6px;
+  }
+
+  .topbarPublicLink {
+    width: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    padding: 0;
+    border-radius: 12px;
+  }
+
+  .topbarPublicLink span {
+    display: none;
+  }
+
+  .mobileLogout {
+    display: block;
+  }
+
+  .logoutButtonCompact {
+    min-width: 66px;
+    min-height: 40px;
+    padding-inline: 10px;
+    border-radius: 12px;
+  }
+
+  .content {
+    padding: 12px 12px 24px;
+  }
+
+  .contentInner {
+    width: 100%;
+  }
+
+  .bottomNav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 80;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    align-items: stretch;
+    min-height: calc(66px + env(safe-area-inset-bottom));
+    padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+    border-top: 1px solid rgba(210, 218, 231, 0.92);
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 -12px 28px rgba(17, 34, 68, 0.09);
+    backdrop-filter: blur(20px) saturate(150%);
+  }
+
+  .bottomNavItem {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-width: 0;
+    min-height: 54px;
+    padding: 4px 2px;
+    border-radius: 13px;
+    color: #71809d;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      background-color 160ms ease,
+      color 160ms ease,
+      transform 160ms ease;
+  }
+
+  .bottomNavItem::before {
+    content: "";
+    position: absolute;
+    top: 1px;
+    left: 50%;
+    width: 0;
+    height: 3px;
+    border-radius: 99px;
+    background: #980d0d;
+    transform: translateX(-50%);
+    transition: width 160ms ease;
+  }
+
+  .bottomNavItem:active {
+    transform: scale(0.97);
+  }
+
+  .bottomNavItemActive {
+    background: linear-gradient(180deg, #f4f7fd 0%, #eef2fa 100%);
+    color: #0d2f73;
+  }
+
+  .bottomNavItemActive::before {
+    width: 28px;
+  }
+
+  .bottomNavIconWrap {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 27px;
+  }
+
+  .bottomNavIcon {
+    width: 20px;
+    height: 20px;
+    stroke-width: 2.15;
+  }
+
+  .bottomNavItemActive .bottomNavIcon {
+    color: #8f1010;
+  }
+
+  .bottomNavLabel {
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: center;
+    font-size: 0.62rem;
+    line-height: 1.1;
+    font-weight: 760;
+  }
+}
+
+@media (max-width: 390px) {
+  .topbarContent {
+    padding-inline: 10px;
+  }
+
+  .topbarTitle {
+    max-width: 57vw;
+    font-size: 0.98rem;
+  }
+
+  .mobileLogout span {
+    display: none;
+  }
+
+  .logoutButtonCompact {
+    width: 40px;
+    min-width: 40px;
+    padding: 0;
+  }
+
+  .content {
+    padding-inline: 9px;
+  }
+
+  .bottomNav {
+    padding-inline: 3px;
+  }
+
+  .bottomNavLabel {
+    font-size: 0.58rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bottomNavItem,
+  .bottomNavItem::before {
+    transition-duration: 1ms;
+  }
+}

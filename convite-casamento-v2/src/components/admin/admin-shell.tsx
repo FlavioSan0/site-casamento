@@ -24,6 +24,7 @@ type AdminShellProps = {
 
 type NavItem = {
   title: string;
+  shortTitle: string;
   description: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
@@ -40,30 +41,35 @@ export function AdminShell({
   const navItems: NavItem[] = [
     {
       title: "Visão geral",
+      shortTitle: "Início",
       description: "Resumo do evento",
       href: `/admin/eventos/${eventoSlug}`,
       icon: LayoutDashboard,
     },
     {
       title: "Configurações",
+      shortTitle: "Ajustes",
       description: "Dados e ajustes gerais",
       href: `/admin/eventos/${eventoSlug}/configuracoes`,
       icon: Settings2,
     },
     {
       title: "Convidados",
+      shortTitle: "Convidados",
       description: "Confirmações e mensagens",
       href: `/admin/eventos/${eventoSlug}/convidados`,
       icon: UsersRound,
     },
     {
       title: "Financeiro",
+      shortTitle: "Financeiro",
       description: "Presentes e reservas",
       href: `/admin/eventos/${eventoSlug}/financeiro`,
       icon: WalletCards,
     },
     {
       title: "Layout",
+      shortTitle: "Layout",
       description: "Galeria e visual",
       href: `/admin/eventos/${eventoSlug}/layout`,
       icon: ImageIcon,
@@ -167,6 +173,7 @@ export function AdminShell({
               <Link
                 href={`/evento/${eventoSlug}`}
                 target="_blank"
+                aria-label="Abrir convite público em uma nova aba"
                 className={styles.topbarPublicLink}
               >
                 <ExternalLink className={styles.publicLinkIcon} />
@@ -184,6 +191,29 @@ export function AdminShell({
           <div className={styles.contentInner}>{children}</div>
         </main>
       </div>
+
+      <nav className={styles.bottomNav} aria-label="Navegação inferior do painel">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const active = isActive(item.href);
+
+          return (
+            <Link
+              key={`mobile-${item.href}`}
+              href={item.href}
+              aria-current={active ? "page" : undefined}
+              className={`${styles.bottomNavItem} ${
+                active ? styles.bottomNavItemActive : ""
+              }`}
+            >
+              <span className={styles.bottomNavIconWrap} aria-hidden="true">
+                <Icon className={styles.bottomNavIcon} />
+              </span>
+              <span className={styles.bottomNavLabel}>{item.shortTitle}</span>
+            </Link>
+          );
+        })}
+      </nav>
     </div>
   );
 }

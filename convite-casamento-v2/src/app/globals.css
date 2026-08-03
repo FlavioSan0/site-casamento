@@ -7161,3 +7161,728 @@ video {
     animation: none;
   }
 }
+
+/* =========================================================
+   30. PAINEL DO CASAL — EXPERIÊNCIA MOBILE COMPLETA
+   Menu inferior, densidade, formulários, cards e modais.
+========================================================= */
+@media (max-width: 860px) {
+  .admin-ux {
+    --admin-mobile-nav-height: calc(72px + env(safe-area-inset-bottom));
+    overflow-x: clip;
+  }
+
+  .admin-ux .admin-page-stack {
+    gap: 12px;
+    padding-bottom: 4px;
+  }
+
+  .admin-ux .event-section,
+  .admin-ux .admin-page-stack > .event-section {
+    min-width: 0;
+  }
+
+  .admin-ux .admin-section-header {
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .admin-ux .admin-section-header__content {
+    gap: 7px;
+    min-width: 0;
+  }
+
+  .admin-ux .admin-section-header__title {
+    font-size: clamp(1.45rem, 7vw, 1.9rem);
+    line-height: 1.08;
+    letter-spacing: -0.025em;
+    overflow-wrap: anywhere;
+  }
+
+  .admin-ux .admin-section-header__description {
+    font-size: 0.84rem;
+    line-height: 1.48;
+  }
+
+  .admin-ux .admin-section-header__actions,
+  .admin-ux .admin-section-header__actions > * {
+    width: 100%;
+  }
+
+  .admin-ux .admin-card {
+    min-width: 0;
+    padding: 13px;
+    border-radius: 17px;
+    box-shadow: 0 7px 20px rgba(17, 34, 68, 0.04);
+  }
+
+  .admin-ux .admin-card-header {
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 11px;
+  }
+
+  .admin-ux .admin-card-header__title {
+    font-size: 1rem;
+    line-height: 1.3;
+  }
+
+  .admin-ux .admin-card-header__description {
+    font-size: 0.81rem;
+    line-height: 1.45;
+  }
+
+  .admin-ux .admin-card-header__actions,
+  .admin-ux .admin-card-header__actions > * {
+    width: 100%;
+  }
+
+  .admin-ux .admin-dashboard-hero {
+    align-items: stretch;
+    gap: 13px;
+    padding: 15px;
+    border-radius: 17px;
+  }
+
+  .admin-ux .admin-dashboard-hero__content {
+    gap: 8px;
+  }
+
+  .admin-ux .admin-dashboard-hero__title {
+    font-size: clamp(1.48rem, 7vw, 1.9rem);
+    line-height: 1.1;
+  }
+
+  .admin-ux .admin-dashboard-hero__text {
+    font-size: 0.82rem;
+    line-height: 1.48;
+  }
+
+  .admin-ux .admin-dashboard-hero__meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .admin-ux .admin-dashboard-hero__meta-item {
+    min-width: 0;
+    min-height: 34px;
+    padding: 7px 9px;
+    font-size: 0.75rem;
+    overflow-wrap: anywhere;
+  }
+
+  .admin-ux .admin-dashboard-hero__actions,
+  .admin-ux .admin-dashboard-hero__actions > a,
+  .admin-ux .admin-dashboard-hero__actions .admin-btn {
+    width: 100%;
+  }
+
+  .admin-ux .admin-overview-metrics--dashboard,
+  .admin-ux .admin-overview-metrics,
+  .admin-ux .admin-guest-metrics,
+  .admin-ux .admin-layout-result-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .admin-ux .admin-metric-card {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-content: start;
+    gap: 5px;
+    min-width: 0;
+    min-height: 112px;
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .admin-ux .admin-metric-label,
+  .admin-ux .admin-metric-text,
+  .admin-ux .admin-metric-value {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .admin-ux .admin-metric-label {
+    font-size: 0.61rem;
+    line-height: 1.35;
+    letter-spacing: 0.08em;
+  }
+
+  .admin-ux .admin-metric-value {
+    font-size: 1.5rem;
+    line-height: 1.05;
+  }
+
+  .admin-ux .admin-metric-text {
+    font-size: 0.72rem;
+    line-height: 1.35;
+  }
+
+  .admin-ux .admin-dashboard-shortcuts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .admin-ux .admin-shortcut-card {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr);
+    align-content: start;
+    gap: 8px;
+    min-width: 0;
+    padding: 12px;
+    border-radius: 15px;
+  }
+
+  .admin-ux .admin-shortcut-card__icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 11px;
+  }
+
+  .admin-ux .admin-shortcut-card__icon-svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .admin-ux .admin-shortcut-card__content {
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .admin-ux .admin-shortcut-card__eyebrow {
+    font-size: 0.58rem;
+  }
+
+  .admin-ux .admin-shortcut-card__title {
+    font-size: 0.94rem;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+
+  .admin-ux .admin-shortcut-card__text {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    font-size: 0.72rem;
+    line-height: 1.35;
+  }
+
+  .admin-ux .admin-shortcut-card > a,
+  .admin-ux .admin-shortcut-card > button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .admin-ux .admin-form-stack {
+    gap: 13px;
+  }
+
+  .admin-ux .admin-form-grid,
+  .admin-ux .admin-preset-grid,
+  .admin-ux .admin-layout-picker,
+  .admin-ux .admin-theme-preview__cards,
+  .admin-ux .admin-history-grid-options {
+    grid-template-columns: 1fr;
+    gap: 11px;
+  }
+
+  .admin-ux .admin-form-grid-full {
+    grid-column: auto;
+  }
+
+  .admin-ux .admin-field {
+    gap: 6px;
+  }
+
+  .admin-ux .admin-field__label {
+    font-size: 0.83rem;
+  }
+
+  .admin-ux .admin-field__control input,
+  .admin-ux .admin-field__control textarea,
+  .admin-ux .admin-field__control select,
+  .admin-ux .admin-finance-search input,
+  .admin-ux .admin-guest-search,
+  .admin-ux .admin-reservations-toolbar select {
+    min-height: 46px;
+    padding-inline: 12px;
+    border-radius: 11px;
+    font-size: 16px;
+  }
+
+  .admin-ux .admin-field__control textarea {
+    min-height: 104px;
+    padding: 12px;
+  }
+
+  .admin-ux .admin-field__hint {
+    font-size: 0.75rem;
+    line-height: 1.4;
+  }
+
+  .admin-ux .admin-switch-card {
+    align-items: center;
+    flex-direction: row;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .admin-ux .admin-switch-card__content {
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .admin-ux .admin-switch-card__content strong {
+    font-size: 0.84rem;
+  }
+
+  .admin-ux .admin-switch-card__content p {
+    font-size: 0.74rem;
+    line-height: 1.35;
+  }
+
+  .admin-ux .admin-submit-bar {
+    position: sticky;
+    bottom: calc(var(--admin-mobile-nav-height) + 8px);
+    z-index: 40;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    padding: 9px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 12px 28px rgba(17, 34, 68, 0.12);
+    backdrop-filter: blur(16px);
+  }
+
+  .admin-ux .admin-submit-bar__feedback {
+    min-width: 0;
+  }
+
+  .admin-ux .admin-submit-bar__hint {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    font-size: 0.72rem;
+    line-height: 1.3;
+  }
+
+  .admin-ux .admin-submit-bar__actions {
+    width: auto;
+    gap: 6px;
+  }
+
+  .admin-ux .admin-submit-bar__actions .admin-btn {
+    width: auto;
+    min-height: 40px;
+    padding-inline: 12px;
+  }
+
+  .admin-ux .admin-guest-toolbar,
+  .admin-ux .admin-reservations-toolbar--enhanced {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .admin-ux .admin-guest-filters {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 6px;
+    margin-inline: -13px;
+    padding: 1px 13px 5px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+  }
+
+  .admin-ux .admin-guest-filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .admin-ux .admin-guest-filter {
+    flex: 0 0 auto;
+    min-height: 34px;
+    padding: 0 11px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    scroll-snap-align: start;
+  }
+
+  .admin-ux .admin-guest-search,
+  .admin-ux .admin-finance-search {
+    width: 100%;
+    max-width: none;
+  }
+
+  .admin-ux .admin-confirmation-grid-refined,
+  .admin-ux .admin-guest-grid,
+  .admin-ux .admin-reservations-list--cards,
+  .admin-ux .admin-gift-grid-refined,
+  .admin-ux .admin-layout-grid-refined,
+  .admin-ux .admin-gallery-list {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .admin-ux .admin-confirmation-card-refined,
+  .admin-ux .admin-guest-card,
+  .admin-ux .admin-reservation-card,
+  .admin-ux .admin-gift-card-refined,
+  .admin-ux .admin-layout-card-refined {
+    min-width: 0;
+    gap: 10px;
+    padding: 12px;
+    border-radius: 15px;
+  }
+
+  .admin-ux .admin-confirmation-card-refined__top,
+  .admin-ux .admin-gift-card-refined__top {
+    align-items: flex-start;
+    gap: 9px;
+  }
+
+  .admin-ux .admin-confirmation-card-refined__badges,
+  .admin-ux .admin-reservation-card__badges,
+  .admin-ux .admin-gift-card-refined__badges {
+    gap: 4px;
+  }
+
+  .admin-ux .admin-badge {
+    min-height: 24px;
+    padding-inline: 8px;
+    font-size: 0.58rem;
+    letter-spacing: 0.09em;
+  }
+
+  .admin-ux .admin-confirmation-card-refined__title,
+  .admin-ux .admin-gift-card-refined__title,
+  .admin-ux .admin-layout-card-refined__title {
+    font-size: 0.98rem;
+    line-height: 1.24;
+    overflow-wrap: anywhere;
+  }
+
+  .admin-ux .admin-confirmation-card-refined__subtitle,
+  .admin-ux .admin-gift-card-refined__description,
+  .admin-ux .admin-layout-card-refined__text {
+    font-size: 0.78rem;
+    line-height: 1.4;
+  }
+
+  .admin-ux .admin-confirmation-card-refined__meta {
+    flex-shrink: 0;
+    text-align: right;
+  }
+
+  .admin-ux .admin-confirmation-card-refined__meta span {
+    font-size: 0.59rem;
+  }
+
+  .admin-ux .admin-confirmation-card-refined__meta strong {
+    font-size: 0.72rem;
+  }
+
+  .admin-ux .admin-guest-summary-grid {
+    grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
+    gap: 7px;
+  }
+
+  .admin-ux .admin-confirmation-block {
+    min-width: 0;
+    padding: 9px;
+    border-radius: 11px;
+  }
+
+  .admin-ux .admin-confirmation-block strong {
+    font-size: 0.75rem;
+  }
+
+  .admin-ux .admin-confirmation-block p,
+  .admin-ux .admin-confirmation-block small {
+    font-size: 0.72rem;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .admin-ux .admin-guest-gift-item {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 7px;
+    padding: 8px 0;
+  }
+
+  .admin-ux .admin-guest-gift-item__info {
+    min-width: 0;
+  }
+
+  .admin-ux .admin-guest-gift-item__info > span {
+    font-size: 0.75rem;
+    overflow-wrap: anywhere;
+  }
+
+  .admin-ux .admin-guest-gift-item__info > strong,
+  .admin-ux .admin-reservation-value {
+    font-size: 0.8rem;
+  }
+
+  .admin-ux .admin-guest-gift-item__actions {
+    grid-template-columns: 1fr;
+    justify-items: end;
+  }
+
+  .admin-ux .admin-guest-gift-item__actions .admin-btn {
+    min-height: 33px;
+    padding: 0 9px;
+    font-size: 0.68rem;
+  }
+
+  .admin-ux .admin-confirmation-card-refined__actions,
+  .admin-ux .admin-reservation-card__actions,
+  .admin-ux .admin-gift-card-refined__actions,
+  .admin-ux .admin-layout-card-refined__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    padding-top: 9px;
+  }
+
+  .admin-ux .admin-confirmation-card-refined__actions .admin-btn:first-child,
+  .admin-ux .admin-reservation-card__actions .admin-btn:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .admin-ux .admin-confirmation-card-refined__actions .admin-btn,
+  .admin-ux .admin-reservation-card__actions .admin-btn,
+  .admin-ux .admin-gift-card-refined__actions .admin-btn,
+  .admin-ux .admin-layout-card-refined__actions .admin-btn {
+    width: 100%;
+    min-height: 40px;
+    padding: 0 10px;
+    font-size: 0.76rem;
+  }
+
+  .admin-ux .admin-gift-card-refined__thumb,
+  .admin-ux .admin-layout-card-refined__image-wrap {
+    width: 100%;
+    height: 180px;
+    border-radius: 12px;
+  }
+
+  .admin-ux .admin-gift-card-refined__stats,
+  .admin-ux .admin-layout-result-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-ux .admin-layout-result-card {
+    min-width: 0;
+    padding: 11px;
+    border-radius: 13px;
+  }
+
+  .admin-ux .admin-layout-result-card__value {
+    font-size: 0.96rem;
+    overflow-wrap: anywhere;
+  }
+
+  .admin-ux .admin-reserved-colors-editor {
+    padding: 10px;
+    overflow-x: hidden;
+  }
+
+  .admin-ux .admin-message-modal {
+    max-width: 100%;
+  }
+
+  .admin-ux .admin-message-layout {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 0 0 10px;
+  }
+
+  .admin-ux .admin-message-preview {
+    position: static;
+    order: -1;
+    padding: 10px;
+    border-radius: 13px;
+  }
+
+  .admin-ux .admin-message-preview__bubble {
+    max-height: 240px;
+    overflow: auto;
+    padding: 11px;
+    font-size: 0.82rem;
+  }
+
+  .admin-ux .admin-message-photo-preview {
+    padding: 9px;
+    border-radius: 13px;
+  }
+
+  .admin-ux .admin-message-photo-preview img {
+    max-height: 210px;
+  }
+
+  .admin-ux .admin-message-photo-actions,
+  .admin-ux .admin-reservation-card__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-ux .admin-link-button,
+  .admin-ux .admin-message-photo-actions .admin-btn {
+    width: 100%;
+  }
+
+  .admin-ux .admin-modal-overlay {
+    place-items: end center;
+    padding: 0;
+    overscroll-behavior: contain;
+  }
+
+  .admin-ux .admin-modal-card,
+  .admin-ux .admin-modal-card--wide {
+    width: 100%;
+    max-height: calc(100dvh - 18px);
+    padding: 15px 13px calc(16px + env(safe-area-inset-bottom));
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-radius: 22px 22px 0 0;
+    box-shadow: 0 -18px 44px rgba(8, 15, 32, 0.2);
+  }
+
+  .admin-ux .admin-modal-header {
+    position: sticky;
+    top: -15px;
+    z-index: 2;
+    align-items: center;
+    gap: 10px;
+    margin: -15px -13px 12px;
+    padding: 13px;
+    border-bottom: 1px solid #e6eaf1;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(14px);
+  }
+
+  .admin-ux .admin-modal-title-wrap {
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .admin-ux .admin-modal-title {
+    font-size: 1.22rem;
+    line-height: 1.2;
+  }
+
+  .admin-ux .admin-modal-subtitle {
+    margin-top: 3px;
+    font-size: 0.76rem;
+    line-height: 1.35;
+  }
+
+  .admin-ux .admin-modal-close {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+  }
+
+  .admin-ux .admin-table-wrap,
+  .admin-ux .admin-table-container,
+  .admin-ux .table-wrapper {
+    max-width: 100%;
+    overflow-x: auto;
+    border-radius: 13px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .admin-ux .admin-empty-state {
+    padding: 24px 13px;
+    border-radius: 14px;
+  }
+
+  .admin-ux .admin-empty-state strong {
+    font-size: 0.9rem;
+  }
+
+  .admin-ux .admin-empty-state p {
+    font-size: 0.78rem;
+    line-height: 1.4;
+  }
+}
+
+@media (max-width: 390px) {
+  .admin-ux .admin-section-header__title {
+    font-size: 1.38rem;
+  }
+
+  .admin-ux .admin-overview-metrics--dashboard,
+  .admin-ux .admin-overview-metrics,
+  .admin-ux .admin-guest-metrics,
+  .admin-ux .admin-dashboard-shortcuts,
+  .admin-ux .admin-layout-result-grid {
+    gap: 7px;
+  }
+
+  .admin-ux .admin-metric-card {
+    min-height: 106px;
+    padding: 10px;
+  }
+
+  .admin-ux .admin-shortcut-card {
+    grid-template-columns: 30px minmax(0, 1fr);
+    padding: 10px;
+  }
+
+  .admin-ux .admin-shortcut-card__icon {
+    width: 30px;
+    height: 30px;
+  }
+
+  .admin-ux .admin-shortcut-card__text {
+    -webkit-line-clamp: 1;
+  }
+
+  .admin-ux .admin-guest-summary-grid,
+  .admin-ux .admin-gift-card-refined__stats {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-ux .admin-confirmation-card-refined__top {
+    flex-direction: column;
+  }
+
+  .admin-ux .admin-confirmation-card-refined__meta {
+    text-align: left;
+  }
+
+  .admin-ux .admin-confirmation-card-refined__actions,
+  .admin-ux .admin-reservation-card__actions,
+  .admin-ux .admin-gift-card-refined__actions,
+  .admin-ux .admin-layout-card-refined__actions,
+  .admin-ux .admin-message-photo-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-ux .admin-confirmation-card-refined__actions .admin-btn:first-child,
+  .admin-ux .admin-reservation-card__actions .admin-btn:first-child {
+    grid-column: auto;
+  }
+
+  .admin-ux .admin-submit-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-ux .admin-submit-bar__actions,
+  .admin-ux .admin-submit-bar__actions .admin-btn {
+    width: 100%;
+  }
+}
