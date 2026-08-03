@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getEventoBySlug } from "../../../../../services/eventos";
 import { getPresentesByEventoId } from "../../../../../services/presentes";
 import { getReservasByEventoId } from "../../../../../services/reservas";
+import { getConfiguracaoEvento } from "../../../../../services/configuracoes-evento";
 import { GiftsManager } from "../../../../../components/admin/gifts-manager";
 import { ReservasTable } from "../../../../../components/admin/reservas-table";
 
@@ -21,15 +22,21 @@ export default async function AdminFinanceiroPage({
     notFound();
   }
 
-  const [presentes, reservas] = await Promise.all([
+  const [presentes, reservas, configuracoes] = await Promise.all([
     getPresentesByEventoId(evento.id),
     getReservasByEventoId(evento.id),
+    getConfiguracaoEvento(evento.id),
   ]);
 
   return (
     <div className="admin-page-stack">
       <GiftsManager eventoId={evento.id} presentes={presentes} />
-      <ReservasTable eventoId={evento.id} reservas={reservas} />
+      <ReservasTable
+        eventoId={evento.id}
+        slug={evento.slug}
+        chavePix={configuracoes?.chave_pix || null}
+        reservas={reservas}
+      />
     </div>
   );
-}   
+}

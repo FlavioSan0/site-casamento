@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "../../../../lib/supabase/admin";
 import { requireAdminApiUser } from "../../../../lib/supabase/auth";
+import { formatPhoneBR, normalizePhoneBR } from "../../../../lib/utils/format-phone";
+import { normalizePersonName } from "../../../../lib/utils/normalize-person-name";
 
 type ConfirmacaoPayload = {
   id?: number;
@@ -13,17 +15,6 @@ type ConfirmacaoPayload = {
   observacoes: string | null;
 };
 
-function normalizePhone(value: unknown) {
-  const digits = String(value || "").replace(/\D/g, "").slice(0, 11);
-
-  if (digits.length <= 2) return digits ? `(${digits}` : "";
-  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
-  if (digits.length <= 10) {
-    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
-  }
-
-  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
-}
 
 export async function POST(request: Request) {
   const authError = await requireAdminApiUser();
@@ -35,7 +26,9 @@ export async function POST(request: Request) {
     const id = body.id ? Number(body.id) : null;
     const eventoId = Number(body.evento_id);
     const nome = String(body.nome || "").trim();
-    const telefone = body.telefone ? normalizePhone(body.telefone) : null;
+    const telefone = body.telefone ? formatPhoneBR(normalizePhoneBR(body.telefone)) : null;
+    const nomeNormalizado = normalizePersonName(nome);
+    const telefoneNormalizado = normalizePhoneBR(body.telefone);
     const acompanhantes = Number(body.acompanhantes ?? 0);
     const presenca = String(body.presenca || "").trim();
     const observacoes = String(body.observacoes || "").trim() || null;
@@ -109,7 +102,9 @@ export async function POST(request: Request) {
       .from("confirmacoes")
       .update({
         nome,
+        nome_normalizado: nomeNormalizado,
         telefone,
+        telefone_normalizado: telefoneNormalizado || null,
         acompanhantes,
         nomes_acompanhantes: acompanhantes > 0 ? nomesAcompanhantes : null,
         presenca,
@@ -125,6 +120,31 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "Não foi possível atualizar a confirmação." },
         { status: 500 },
+      );
+    }
+
+    if (telefoneNormalizado) {
+      const { error: linkError } = await supabase
+        .from("reservas_presentes")
+        .update({ confirmacao_id: data.id, vinculo_origem: "telefone" })
+        .eq("evento_id", eventoId)
+        .eq("telefone_normalizado", telefoneNormalizado)
+        .is("confirmacao_id", null);
+
+      if (linkError) {
+        console.error("Erro ao relacionar reservas à confirmação:", linkError.message);
+      }
+    }
+
+    const { error: nameLinkError } = await supabase.rpc(
+      "relacionar_reservas_legadas_por_nome",
+      { p_evento_id: eventoId },
+    );
+
+    if (nameLinkError && !["PGRST202", "42883"].includes(nameLinkError.code || "")) {
+      console.error(
+        "Erro ao relacionar reservas antigas pelo nome:",
+        nameLinkError.message,
       );
     }
 

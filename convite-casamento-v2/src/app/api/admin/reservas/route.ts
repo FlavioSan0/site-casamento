@@ -10,6 +10,71 @@ function isMissingRpcError(error: { code?: string; message?: string } | null) {
   );
 }
 
+export async function PATCH(request: NextRequest) {
+  const authError = await requireAdminApiUser();
+  if (authError) return authError;
+
+  try {
+    const body = await request.json();
+    const reservaId = Number(body?.id);
+    const eventoId = Number(body?.evento_id);
+    const recebido = body?.presente_recebido;
+
+    if (!reservaId || Number.isNaN(reservaId)) {
+      return NextResponse.json({ error: "Reserva inválida." }, { status: 400 });
+    }
+
+    if (!eventoId || Number.isNaN(eventoId)) {
+      return NextResponse.json({ error: "Evento inválido." }, { status: 400 });
+    }
+
+    if (typeof recebido !== "boolean") {
+      return NextResponse.json(
+        { error: "Informe se o presente foi recebido." },
+        { status: 400 },
+      );
+    }
+
+    const supabase = createAdminClient();
+    const presenteRecebidoEm = recebido ? new Date().toISOString() : null;
+    const { data, error } = await supabase
+      .from("reservas_presentes")
+      .update({
+        presente_recebido: recebido,
+        presente_recebido_em: presenteRecebidoEm,
+      })
+      .eq("id", reservaId)
+      .eq("evento_id", eventoId)
+      .select("id, presente_recebido, presente_recebido_em")
+      .maybeSingle();
+
+    if (error) {
+      return NextResponse.json(
+        { error: error.message || "Não foi possível atualizar a entrega do presente." },
+        { status: 400 },
+      );
+    }
+
+    if (!data) {
+      return NextResponse.json({ error: "Reserva não encontrada." }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: recebido
+        ? "Presente marcado como recebido."
+        : "Baixa desfeita; o presente voltou a ficar pendente.",
+      data,
+    });
+  } catch (error) {
+    console.error("Erro ao atualizar entrega da reserva:", error);
+    return NextResponse.json(
+      { error: "Erro inesperado ao atualizar a entrega do presente." },
+      { status: 500 },
+    );
+  }
+}
+
 export async function DELETE(request: NextRequest) {
   const authError = await requireAdminApiUser();
   if (authError) return authError;

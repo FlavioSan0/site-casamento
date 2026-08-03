@@ -8,7 +8,9 @@ export async function getReservasByEventoId(
 
   const { data, error } = await supabase
     .from("reservas_presentes")
-    .select("id, evento_id, presente_id, reservado_por, created_at, presentes(nome, usa_cotas)")
+    .select(
+      "id, evento_id, presente_id, reservado_por, telefone, telefone_normalizado, nome_normalizado, confirmacao_id, vinculo_origem, presente_recebido, presente_recebido_em, created_at, presentes(nome, usa_cotas, valor)",
+    )
     .eq("evento_id", eventoId)
     .order("created_at", { ascending: false });
 

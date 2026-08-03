@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { formatPhoneBR } from "../../lib/utils/format-phone";
+import { formatPhoneBR, isValidPhoneBR } from "../../lib/utils/format-phone";
 
 type RsvpFormProps = {
   eventoId: number;
@@ -18,7 +18,7 @@ type FormState = {
   observacoes: string;
 };
 
-type FieldErrors = Partial<Record<"nome" | "comparecera" | "acompanhantes", string>>;
+type FieldErrors = Partial<Record<"nome" | "telefone" | "comparecera" | "acompanhantes", string>>;
 
 function formatDateBR(dateString: string | null) {
   if (!dateString) return null;
@@ -82,7 +82,7 @@ export function RsvpForm({
       ...prev,
       [field]: value,
     }));
-    if (field === "nome" || field === "comparecera") {
+    if (field === "nome" || field === "telefone" || field === "comparecera") {
       setFieldErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   }
@@ -133,6 +133,7 @@ export function RsvpForm({
 
     const errors: FieldErrors = {};
     if (!form.nome.trim()) errors.nome = "Informe seu nome completo.";
+    if (!isValidPhoneBR(form.telefone)) errors.telefone = "Informe um telefone válido.";
     if (!form.comparecera) errors.comparecera = "Selecione uma opção.";
     if (
       form.comparecera === "sim" &&
@@ -141,7 +142,7 @@ export function RsvpForm({
       errors.acompanhantes = "Preencha o nome de cada acompanhante.";
     }
 
-    const firstInvalid = (["nome", "comparecera", "acompanhantes"] as const).find(
+    const firstInvalid = (["nome", "telefone", "comparecera", "acompanhantes"] as const).find(
       (field) => errors[field],
     );
     if (firstInvalid) {
@@ -277,7 +278,7 @@ export function RsvpForm({
               </div>
 
               <div className="form-field">
-                <label htmlFor="telefone">Telefone</label>
+                <label htmlFor="telefone">Telefone <span aria-hidden="true">*</span></label>
                 <input
                   id="telefone"
                   type="tel"
@@ -287,8 +288,12 @@ export function RsvpForm({
                   placeholder="(00) 00000-0000"
                   maxLength={15}
                   autoComplete="tel"
+                  required
+                  aria-invalid={Boolean(fieldErrors.telefone)}
+                  aria-describedby={fieldErrors.telefone ? "telefone-error" : undefined}
                   disabled={loading || deadlineExpired}
                 />
+                {fieldErrors.telefone ? <p id="telefone-error" className="field-error">{fieldErrors.telefone}</p> : null}
               </div>
 
               <div className="form-field form-field--full">

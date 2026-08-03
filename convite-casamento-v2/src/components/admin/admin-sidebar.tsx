@@ -21,7 +21,7 @@ const items = [
   {
     label: "Convidados",
     href: "/convidados",
-    description: "Confirmações e presença",
+    description: "Presença, reservas e mensagens",
   },
   {
     label: "Financeiro",

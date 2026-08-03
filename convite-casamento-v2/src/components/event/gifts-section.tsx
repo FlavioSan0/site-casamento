@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import type { Presente } from "../../types/presente";
+import { formatPhoneBR, isValidPhoneBR } from "../../lib/utils/format-phone";
 
 type GiftsSectionProps = {
   eventoId: number;
@@ -74,6 +75,7 @@ function getDisponibilidade(presente: Presente) {
 export function GiftsSection({ eventoId, presentes }: GiftsSectionProps) {
   const [giftList, setGiftList] = useState<Presente[]>(presentes);
   const [nomesReserva, setNomesReserva] = useState<Record<number, string>>({});
+  const [telefonesReserva, setTelefonesReserva] = useState<Record<number, string>>({});
   const [loadingId, setLoadingId] = useState<number | null>(null);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [feedbackByGift, setFeedbackByGift] = useState<Record<number, FeedbackState>>({});
@@ -93,6 +95,7 @@ export function GiftsSection({ eventoId, presentes }: GiftsSectionProps) {
 
   async function reservarPresente(presente: Presente) {
     const nomeReserva = (nomesReserva[presente.id] || "").trim();
+    const telefoneReserva = (telefonesReserva[presente.id] || "").trim();
     const disponibilidade = getDisponibilidade(presente);
 
     if (!nomeReserva) {
@@ -101,6 +104,17 @@ export function GiftsSection({ eventoId, presentes }: GiftsSectionProps) {
         [presente.id]: {
           type: "error",
           message: "Informe seu nome para reservar.",
+        },
+      }));
+      return;
+    }
+
+    if (!isValidPhoneBR(telefoneReserva)) {
+      setFeedbackByGift((prev) => ({
+        ...prev,
+        [presente.id]: {
+          type: "error",
+          message: "Informe um telefone válido para relacionar a reserva à confirmação.",
         },
       }));
       return;
@@ -133,6 +147,7 @@ export function GiftsSection({ eventoId, presentes }: GiftsSectionProps) {
           evento_id: eventoId,
           presente_id: presente.id,
           reservado_por: nomeReserva,
+          telefone: telefoneReserva,
         }),
       });
 
@@ -168,6 +183,10 @@ export function GiftsSection({ eventoId, presentes }: GiftsSectionProps) {
       }));
 
       setNomesReserva((prev) => ({
+        ...prev,
+        [presente.id]: "",
+      }));
+      setTelefonesReserva((prev) => ({
         ...prev,
         [presente.id]: "",
       }));
@@ -333,6 +352,36 @@ export function GiftsSection({ eventoId, presentes }: GiftsSectionProps) {
                           autoComplete="name"
                           disabled={loading}
                         />
+
+                        <label
+                          className="gift-card-refined__form-label"
+                          htmlFor={`gift-phone-${presente.id}`}
+                        >
+                          Telefone para contato
+                        </label>
+
+                        <input
+                          id={`gift-phone-${presente.id}`}
+                          type="tel"
+                          inputMode="tel"
+                          className="gift-input"
+                          placeholder="(00) 00000-0000"
+                          value={telefonesReserva[presente.id] || ""}
+                          onChange={(event) =>
+                            setTelefonesReserva((prev) => ({
+                              ...prev,
+                              [presente.id]: formatPhoneBR(event.target.value),
+                            }))
+                          }
+                          maxLength={15}
+                          autoComplete="tel"
+                          disabled={loading}
+                          required
+                        />
+
+                        <p className="gift-card-refined__form-hint">
+                          Usaremos o telefone apenas para relacionar a reserva à sua confirmação e facilitar lembretes do evento.
+                        </p>
 
                         <button
                           type="button"

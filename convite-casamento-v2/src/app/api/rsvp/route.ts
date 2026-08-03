@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "../../../lib/supabase/admin";
+import { formatPhoneBR, isValidPhoneBR, normalizePhoneBR } from "../../../lib/utils/format-phone";
+import { normalizePersonName } from "../../../lib/utils/normalize-person-name";
 
 type RsvpPayload = {
   evento_id: number;
@@ -18,20 +20,26 @@ export async function POST(request: Request) {
     const eventoId = Number(body.evento_id);
     const acompanhantes = Number(body.acompanhantes || 0);
     const nome = String(body.nome || "").trim();
-    const telefone = String(body.telefone || "").trim();
+    const telefoneNormalizado = normalizePhoneBR(body.telefone);
+    const nomeNormalizado = normalizePersonName(nome);
+    const telefone = formatPhoneBR(telefoneNormalizado);
     const presenca = String(body.presenca || "").trim();
     const observacoes = String(body.observacoes || "").trim();
 
     if (!eventoId) {
-      return NextResponse.json(
-        { error: "Evento inválido." },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Evento inválido." }, { status: 400 });
     }
 
     if (!nome || nome.length > 120) {
       return NextResponse.json(
         { error: "Informe um nome válido com até 120 caracteres." },
+        { status: 400 },
+      );
+    }
+
+    if (!isValidPhoneBR(telefoneNormalizado)) {
+      return NextResponse.json(
+        { error: "Informe um telefone válido para sua confirmação." },
         { status: 400 },
       );
     }
@@ -43,9 +51,9 @@ export async function POST(request: Request) {
       );
     }
 
-    if (telefone.length > 24 || observacoes.length > 1000) {
+    if (observacoes.length > 1000) {
       return NextResponse.json(
-        { error: "Telefone ou observações excedem o limite permitido." },
+        { error: "As observações excedem o limite permitido." },
         { status: 400 },
       );
     }
@@ -73,10 +81,7 @@ export async function POST(request: Request) {
       .maybeSingle();
 
     if (configError) {
-      console.error(
-        "Erro ao buscar configurações do evento:",
-        configError.message,
-      );
+      console.error("Erro ao buscar configurações do evento:", configError.message);
     }
 
     const maxAcompanhantes = Number(config?.max_acompanhantes ?? 4);
@@ -129,21 +134,72 @@ export async function POST(request: Request) {
       );
     }
 
-    const { data, error } = await supabase
+    const presencaDb =
+      presenca === "sim" ? "Sim, estarei presente" : "Não poderei comparecer";
+
+    const confirmationPayload = {
+      evento_id: eventoId,
+      nome,
+      nome_normalizado: nomeNormalizado,
+      telefone,
+      telefone_normalizado: telefoneNormalizado,
+      acompanhantes: presenca === "sim" ? acompanhantes : 0,
+      nomes_acompanhantes:
+        presenca === "sim" && acompanhantes > 0 ? nomesAcompanhantes : null,
+      presenca: presencaDb,
+      observacoes: observacoes || null,
+    };
+
+    const { data: existingByPhone } = await supabase
       .from("confirmacoes")
-      .insert([
-        {
-          evento_id: eventoId,
-          nome,
-          telefone: telefone || null,
-          acompanhantes,
-          nomes_acompanhantes: acompanhantes > 0 ? nomesAcompanhantes : null,
-          presenca,
-          observacoes: observacoes || null,
-        },
-      ])
-      .select("*")
-      .single();
+      .select("id")
+      .eq("evento_id", eventoId)
+      .eq("telefone_normalizado", telefoneNormalizado)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    let existing = existingByPhone;
+
+    if (!existing?.id && nomeNormalizado) {
+      const { data: legacyCandidates, error: legacyMatchError } = await supabase
+        .from("confirmacoes")
+        .select("id, telefone_normalizado")
+        .eq("evento_id", eventoId)
+        .eq("nome_normalizado", nomeNormalizado)
+        .limit(3);
+
+      if (legacyMatchError) {
+        console.error(
+          "Erro ao procurar confirmação antiga pelo nome:",
+          legacyMatchError.message,
+        );
+      } else {
+        const candidatesWithoutPhone = (legacyCandidates || []).filter(
+          (candidate) => !normalizePhoneBR(candidate.telefone_normalizado),
+        );
+
+        if (candidatesWithoutPhone.length === 1) {
+          existing = { id: candidatesWithoutPhone[0].id };
+        }
+      }
+    }
+
+    const result = existing?.id
+      ? await supabase
+          .from("confirmacoes")
+          .update(confirmationPayload)
+          .eq("id", existing.id)
+          .eq("evento_id", eventoId)
+          .select("*")
+          .single()
+      : await supabase
+          .from("confirmacoes")
+          .insert([confirmationPayload])
+          .select("*")
+          .single();
+
+    const { data, error } = result;
 
     if (error) {
       console.error("Erro ao salvar confirmação:", error.message);
@@ -153,10 +209,34 @@ export async function POST(request: Request) {
       );
     }
 
+    const { error: linkError } = await supabase
+      .from("reservas_presentes")
+      .update({ confirmacao_id: data.id, vinculo_origem: "telefone" })
+      .eq("evento_id", eventoId)
+      .eq("telefone_normalizado", telefoneNormalizado)
+      .is("confirmacao_id", null);
+
+    if (linkError) {
+      console.error("Erro ao relacionar reservas à confirmação:", linkError.message);
+    }
+    const { error: nameLinkError } = await supabase.rpc(
+      "relacionar_reservas_legadas_por_nome",
+      { p_evento_id: eventoId },
+    );
+
+    if (nameLinkError && !["PGRST202", "42883"].includes(nameLinkError.code || "")) {
+      console.error(
+        "Erro ao relacionar reservas antigas pelo nome:",
+        nameLinkError.message,
+      );
+    }
+
     return NextResponse.json(
       {
         success: true,
-        message: "Confirmação enviada com sucesso.",
+        message: existing?.id
+          ? "Confirmação atualizada com sucesso."
+          : "Confirmação enviada com sucesso.",
         data,
       },
       { status: 200 },

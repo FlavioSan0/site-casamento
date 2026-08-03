@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getEventoBySlug } from "../../../../../services/eventos";
 import { getConfiguracaoEvento } from "../../../../../services/configuracoes-evento";
+import { getReservasByEventoId } from "../../../../../services/reservas";
 import { createClient } from "../../../../../lib/supabase/server";
 import { ConfirmationsManager } from "../../../../../components/admin/confirmations-manager";
 
@@ -37,9 +38,10 @@ export default async function AdminConvidadosPage({
     notFound();
   }
 
-  const [confirmacoes, configuracoes] = await Promise.all([
+  const [confirmacoes, configuracoes, reservas] = await Promise.all([
     getConfirmacoesByEventoId(evento.id),
     getConfiguracaoEvento(evento.id),
+    getReservasByEventoId(evento.id),
   ]);
 
   return (
@@ -47,6 +49,18 @@ export default async function AdminConvidadosPage({
       <ConfirmationsManager
         eventoId={evento.id}
         confirmacoes={confirmacoes}
+        reservas={reservas}
+        evento={{
+          slug: evento.slug,
+          nome_casal: evento.nome_casal,
+          data_evento: evento.data_evento,
+          horario_evento: evento.horario_evento,
+          local_cerimonia: evento.local_cerimonia,
+          link_maps_cerimonia: evento.link_maps_cerimonia,
+          local_recepcao: evento.local_recepcao,
+          link_maps_recepcao: evento.link_maps_recepcao,
+          chave_pix: configuracoes?.chave_pix || null,
+        }}
         maxAcompanhantes={configuracoes?.max_acompanhantes ?? 4}
       />
     </div>
