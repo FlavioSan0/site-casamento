@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   ExternalLink,
+  HeartHandshake,
   ImageIcon,
   LayoutDashboard,
   Settings2,
@@ -51,7 +52,7 @@ export function AdminShell({
     },
     {
       title: "Convidados",
-      description: "Confirmações e presença",
+      description: "Confirmações e mensagens",
       href: `/admin/eventos/${eventoSlug}/convidados`,
       icon: UsersRound,
     },
@@ -77,20 +78,37 @@ export function AdminShell({
     return pathname === href || pathname.startsWith(`${href}/`);
   };
 
+  const currentSection =
+    navItems.find((item) => isActive(item.href))?.title || "Painel";
+
   return (
-    <div className={styles.shell} style={buildThemeStyle(themeConfig)}>
+    <div
+      className={`${styles.shell} admin-ux`}
+      style={buildThemeStyle(themeConfig)}
+    >
       <aside className={styles.sidebar}>
         <div className={styles.sidebarInner}>
           <div className={styles.sidebarTop}>
             <div className={styles.sidebarHeader}>
-              <span className={styles.sidebarEyebrow}>Painel administrativo</span>
-              <h1 className={styles.sidebarTitle}>Evento</h1>
-              <p className={styles.sidebarDescription}>
-                Organize o evento por seções e trabalhe com mais clareza no painel.
-              </p>
+              <div className={styles.brandMark} aria-hidden="true">
+                <HeartHandshake className={styles.brandMarkIcon} />
+              </div>
+
+              <div className={styles.sidebarHeaderText}>
+                <span className={styles.sidebarEyebrow}>Painel administrativo</span>
+                <h1 className={styles.sidebarTitle}>Painel do casal</h1>
+                <p className={styles.sidebarDescription}>
+                  Gerencie convidados, presentes e o visual do convite em um só lugar.
+                </p>
+              </div>
             </div>
 
-            <nav className={styles.nav}>
+            <div className={styles.eventChip} title={eventoNome}>
+              <span className={styles.eventChipDot} aria-hidden="true" />
+              <span className={styles.eventChipText}>{eventoNome}</span>
+            </div>
+
+            <nav className={styles.nav} aria-label="Navegação do painel">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item.href);
@@ -99,9 +117,12 @@ export function AdminShell({
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`${styles.navItem} ${active ? styles.navItemActive : ""}`}
+                    aria-current={active ? "page" : undefined}
+                    className={`${styles.navItem} ${
+                      active ? styles.navItemActive : ""
+                    }`}
                   >
-                    <div className={styles.navIconWrap}>
+                    <div className={styles.navIconWrap} aria-hidden="true">
                       <Icon className={styles.navIcon} />
                     </div>
 
@@ -134,16 +155,34 @@ export function AdminShell({
       <div className={styles.main}>
         <header className={styles.topbar}>
           <div className={styles.topbarContent}>
-            <span className={styles.topbarEyebrow}>Gerenciando agora</span>
-            <h2 className={styles.topbarTitle}>{eventoNome}</h2>
-            <p className={styles.topbarSubtitle}>
-              Painel principal do evento com módulos organizados para operação,
-              acompanhamento e ajustes.
-            </p>
+            <div className={styles.topbarInfo}>
+              <span className={styles.topbarEyebrow}>{currentSection}</span>
+              <h2 className={styles.topbarTitle}>{eventoNome}</h2>
+              <p className={styles.topbarSubtitle}>
+                Acompanhe o evento e faça ajustes com clareza, sem perder o contexto.
+              </p>
+            </div>
+
+            <div className={styles.topbarActions}>
+              <Link
+                href={`/evento/${eventoSlug}`}
+                target="_blank"
+                className={styles.topbarPublicLink}
+              >
+                <ExternalLink className={styles.publicLinkIcon} />
+                <span>Ver convite</span>
+              </Link>
+
+              <div className={styles.mobileLogout}>
+                <AdminLogoutButton eventoSlug={eventoSlug} compact />
+              </div>
+            </div>
           </div>
         </header>
 
-        <main className={styles.content}>{children}</main>
+        <main className={styles.content}>
+          <div className={styles.contentInner}>{children}</div>
+        </main>
       </div>
     </div>
   );

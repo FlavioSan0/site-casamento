@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   CalendarDays,
+  Clock3,
   CreditCard,
   Images,
   Settings2,
@@ -84,8 +85,6 @@ export default async function AdminEventoDashboardPage({
     0,
   );
 
-  const imagensDestaque = galeria.filter((item) => item.destaque).length;
-
   return (
     <div className="admin-page-stack">
       <section className="event-section">
@@ -113,7 +112,7 @@ export default async function AdminEventoDashboardPage({
               </div>
 
               <div className="admin-dashboard-hero__meta-item">
-                <CalendarDays className="admin-dashboard-hero__meta-icon" />
+                <Clock3 className="admin-dashboard-hero__meta-icon" />
                 <span>Horário: {evento.horario_evento || "Não definido"}</span>
               </div>
             </div>
@@ -281,36 +280,6 @@ export default async function AdminEventoDashboardPage({
         </AdminCard>
       </section>
 
-      <section className="event-section">
-        <AdminCard>
-          <AdminCardHeader
-            title="Resumo rápido"
-            description="Panorama geral do estado atual do evento."
-          />
-
-          <div className="admin-summary-grid">
-            <div className="admin-summary-item">
-              <span className="admin-summary-item__label">Presença confirmada</span>
-              <strong className="admin-summary-item__value">{confirmados}</strong>
-            </div>
-
-            <div className="admin-summary-item">
-              <span className="admin-summary-item__label">Imagens na galeria</span>
-              <strong className="admin-summary-item__value">{galeria.length}</strong>
-            </div>
-
-            <div className="admin-summary-item">
-              <span className="admin-summary-item__label">Imagem destaque</span>
-              <strong className="admin-summary-item__value">{imagensDestaque}</strong>
-            </div>
-
-            <div className="admin-summary-item">
-              <span className="admin-summary-item__label">Presentes cadastrados</span>
-              <strong className="admin-summary-item__value">{presentes.length}</strong>
-            </div>
-          </div>
-        </AdminCard>
-      </section>
     </div>
   );
 }

@@ -6,7 +6,13 @@ import { useRouter } from "next/navigation";
 import { createClient } from "../../lib/supabase/client";
 import styles from "./admin-shell.module.css";
 
-export function AdminLogoutButton({ eventoSlug }: { eventoSlug: string }) {
+export function AdminLogoutButton({
+  eventoSlug,
+  compact = false,
+}: {
+  eventoSlug: string;
+  compact?: boolean;
+}) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -25,12 +31,15 @@ export function AdminLogoutButton({ eventoSlug }: { eventoSlug: string }) {
   return (
     <button
       type="button"
-      className={styles.logoutButton}
+      className={`${styles.logoutButton} ${
+        compact ? styles.logoutButtonCompact : ""
+      }`}
       onClick={handleLogout}
       disabled={loading}
+      aria-label={loading ? "Saindo do painel" : "Sair do painel"}
     >
       <LogOut className={styles.publicLinkIcon} />
-      <span>{loading ? "Saindo..." : "Sair do painel"}</span>
+      <span>{loading ? "Saindo..." : compact ? "Sair" : "Sair do painel"}</span>
     </button>
   );
 }
